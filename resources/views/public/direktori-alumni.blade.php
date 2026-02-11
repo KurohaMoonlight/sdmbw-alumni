@@ -13,7 +13,7 @@
         --success: #198754;
     }
 
-    /* Hero Section */
+    /* --- Hero Section --- */
     .hero-direktori {
         background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
         padding: 4rem 0;
@@ -31,6 +31,7 @@
         height: 500px;
         background: radial-gradient(circle, rgba(234, 224, 207, 0.1) 0%, transparent 70%);
         border-radius: 50%;
+        pointer-events: none;
     }
 
     .hero-direktori h1 {
@@ -63,7 +64,7 @@
         z-index: 1;
     }
 
-    /* Filter Section */
+    /* --- Filter Section --- */
     .filter-section {
         background: white;
         padding: 2rem;
@@ -81,18 +82,6 @@
         display: flex;
         align-items: center;
         gap: 0.5rem;
-    }
-
-    .filter-title i {
-        font-size: 1.3rem;
-    }
-
-    .filter-group {
-        margin-bottom: 1.5rem;
-    }
-
-    .filter-group:last-child {
-        margin-bottom: 0;
     }
 
     .filter-label {
@@ -117,10 +106,6 @@
         outline: none;
     }
 
-    .form-control::placeholder {
-        color: #adb5bd;
-    }
-
     .btn-filter {
         background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
         color: white;
@@ -130,7 +115,6 @@
         font-weight: 600;
         transition: all 0.3s ease;
         width: 100%;
-        cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -151,11 +135,11 @@
         border-radius: 10px;
         font-weight: 600;
         transition: all 0.3s ease;
-        cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: center;
         gap: 0.5rem;
+        text-decoration: none;
     }
 
     .btn-reset:hover {
@@ -163,10 +147,10 @@
         color: white;
     }
 
-    /* Alumni Cards */
+    /* --- Alumni Cards --- */
     .alumni-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
         gap: 2rem;
         margin-bottom: 3rem;
     }
@@ -193,9 +177,6 @@
         position: relative;
         height: 220px;
         background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
-        display: flex;
-        align-items: center;
-        justify-content: center;
         overflow: hidden;
     }
 
@@ -203,6 +184,11 @@
         width: 100%;
         height: 100%;
         object-fit: cover;
+        transition: transform 0.5s ease;
+    }
+
+    .alumni-card:hover .alumni-card-image img {
+        transform: scale(1.05);
     }
 
     .alumni-card-image-placeholder {
@@ -231,6 +217,7 @@
         text-transform: uppercase;
         letter-spacing: 0.5px;
         z-index: 10;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
 
     .alumni-card-body {
@@ -260,10 +247,6 @@
         width: fit-content;
     }
 
-    .alumni-card-info {
-        flex-grow: 1;
-    }
-
     .alumni-card-item {
         display: flex;
         align-items: flex-start;
@@ -274,7 +257,6 @@
 
     .alumni-card-item i {
         color: var(--primary);
-        font-weight: 600;
         margin-top: 0.2rem;
         min-width: 20px;
     }
@@ -307,7 +289,6 @@
         font-weight: 600;
         transition: all 0.3s ease;
         border: none;
-        cursor: pointer;
     }
 
     .btn-profile:hover {
@@ -316,10 +297,13 @@
         color: white;
     }
 
-    /* Empty State */
+    /* --- Empty State --- */
     .empty-state {
         text-align: center;
         padding: 4rem 2rem;
+        background: #f8f9fa;
+        border-radius: 16px;
+        border: 2px dashed rgba(33, 52, 72, 0.1);
     }
 
     .empty-state i {
@@ -335,11 +319,7 @@
         margin-bottom: 0.5rem;
     }
 
-    .empty-state p {
-        color: #666;
-    }
-
-    /* Results Counter */
+    /* --- Responsive & Utilities --- */
     .results-counter {
         color: #666;
         font-weight: 500;
@@ -347,7 +327,6 @@
         text-align: center;
     }
 
-    /* Filter Row */
     @media (min-width: 768px) {
         .filter-row {
             display: grid;
@@ -357,24 +336,16 @@
         }
     }
 
-    /* Responsive */
     @media (max-width: 767px) {
-        .hero-direktori h1 {
-            font-size: 2rem;
-        }
-
-        .alumni-grid {
-            grid-template-columns: 1fr;
-        }
-
-        .btn-filter, .btn-reset {
-            width: 100%;
-        }
+        .hero-direktori h1 { font-size: 2rem; }
+        .alumni-grid { grid-template-columns: 1fr; }
+        .btn-filter, .btn-reset { width: 100%; }
     }
 </style>
 
+<!-- Hero Section -->
 <div class="hero-direktori">
-    <div class="container">
+    <div class="container text-center text-md-start">
         <div class="hero-badge">
             <i class="bi bi-people-fill"></i> JELAJAHI NETWORK
         </div>
@@ -387,20 +358,19 @@
     <!-- Filter Section -->
     <div class="filter-section">
         <div class="filter-title">
-            <i class="bi bi-funnel-fill"></i>
-            Cari Alumni
+            <i class="bi bi-funnel-fill"></i> Cari Alumni
         </div>
 
         <form action="{{ route('public.direktori') }}" method="GET">
             <div class="filter-row">
-                <!-- Search Nama -->
-                <div class="filter-group">
+                <!-- Input Nama -->
+                <div class="filter-group mb-3 mb-md-0">
                     <label class="filter-label"><i class="bi bi-person"></i> Cari Nama</label>
                     <input type="text" name="search" class="form-control" placeholder="Masukkan nama alumni..." value="{{ request('search') }}">
                 </div>
 
-                <!-- Filter Angkatan (Dinamis dari Database) -->
-                <div class="filter-group">
+                <!-- Select Angkatan -->
+                <div class="filter-group mb-3 mb-md-0">
                     <label class="filter-label"><i class="bi bi-mortarboard"></i> Angkatan</label>
                     <select name="angkatan" class="form-select">
                         <option value="">Semua Angkatan</option>
@@ -409,68 +379,67 @@
                                 {{ $ang->nama_angkatan }} ({{ $ang->tahun_ajaran }})
                             </option>
                         @empty
-                            <option disabled>Tidak ada angkatan</option>
+                            <option disabled>Tidak ada data angkatan</option>
                         @endforelse
                     </select>
                 </div>
 
-                <!-- Buttons -->
-                <div class="filter-group">
-                    <button type="submit" class="btn-filter">
+                <!-- Submit & Reset Button Group -->
+                <div class="filter-group d-flex gap-2">
+                    <button type="submit" class="btn-filter" style="flex: 1;">
                         <i class="bi bi-search"></i> Cari
                     </button>
+
+                    @if(request('search') || request('angkatan'))
+                        <a href="{{ route('public.direktori') }}" class="btn-reset" style="white-space: nowrap;" title="Reset Filter">
+                            <i class="bi bi-arrow-counterclockwise"></i> <span class="d-none d-lg-inline">Reset</span>
+                        </a>
+                    @endif
                 </div>
             </div>
-
-            <!-- Reset Button -->
-            @if(request('search') || request('angkatan'))
-                <div style="margin-top: 1rem;">
-                    <a href="{{ route('public.direktori') }}" class="btn-reset">
-                        <i class="bi bi-arrow-counterclockwise"></i> Reset Filter
-                    </a>
-                </div>
-            @endif
         </form>
     </div>
 
-    <!-- Results Counter -->
+    <!-- Content Section -->
     @if($alumni->count() > 0)
+        <!-- Counter -->
         <div class="results-counter">
             Menampilkan <strong>{{ $alumni->count() }}</strong> dari <strong>{{ $alumni->total() }}</strong> alumni yang tersedia
         </div>
-    @endif
 
-    <!-- Alumni Grid -->
-    @if($alumni->count() > 0)
+        <!-- Alumni Grid -->
         <div class="alumni-grid">
             @foreach($alumni as $item)
                 <div class="alumni-card">
-                    <!-- Card Image -->
+                    <!-- Image Area -->
                     <div class="alumni-card-image">
+                        <div class="alumni-card-badge">
+                            <i class="bi bi-check-circle-fill"></i> Verified
+                        </div>
+
                         @php $fotoUtama = $item->fotos->where('is_main', true)->first(); @endphp
 
                         @if($fotoUtama)
-                            <img src="{{ asset('storage/' . $fotoUtama->path_file) }}" alt="Foto {{ $item->nama_lengkap }}">
+                            <img src="{{ asset('storage/' . $fotoUtama->path_file) }}" alt="{{ $item->nama_lengkap }}">
                         @else
                             <div class="alumni-card-image-placeholder">
                                 <i class="bi bi-person-fill"></i>
                             </div>
                         @endif
-
-                        <div class="alumni-card-badge">
-                            <i class="bi bi-check-circle-fill"></i> Verified
-                        </div>
                     </div>
 
-                    <!-- Card Body -->
+                    <!-- Info Area -->
                     <div class="alumni-card-body">
                         <h5 class="alumni-card-name">{{ $item->nama_lengkap }}</h5>
 
-                        <span class="alumni-card-angkatan">
-                            <i class="bi bi-mortarboard-fill"></i> {{ $item->angkatan->nama_angkatan ?? '-' }}
-                        </span>
+                        <div class="mb-3">
+                            <span class="alumni-card-angkatan">
+                                <i class="bi bi-mortarboard-fill"></i> {{ $item->angkatan->nama_angkatan ?? '-' }}
+                            </span>
+                        </div>
 
-                        <div class="alumni-card-info">
+                        <div class="grow">
+                            <!-- Tahun Lulus -->
                             <div class="alumni-card-item">
                                 <i class="bi bi-calendar-event"></i>
                                 <div>
@@ -479,17 +448,21 @@
                                 </div>
                             </div>
 
+                            <!-- Email (Optional) -->
                             @if($item->email)
                                 <div class="alumni-card-item">
                                     <i class="bi bi-envelope"></i>
                                     <div>
                                         <span class="alumni-card-item-label">Email:</span>
-                                        <span class="alumni-card-item-value" style="font-size: 0.85rem;">{{ Str::limit($item->email, 20) }}</span>
+                                        <span class="alumni-card-item-value text-break" style="font-size: 0.85rem;">
+                                            {{ Str::limit($item->email, 20) }}
+                                        </span>
                                     </div>
                                 </div>
                             @endif
                         </div>
 
+                        <!-- Footer Action -->
                         <div class="alumni-card-footer">
                             <a href="{{ route('public.profil', $item) }}" class="btn-profile">
                                 <i class="bi bi-eye"></i> Lihat Profil Lengkap
@@ -502,17 +475,21 @@
 
         <!-- Pagination -->
         @if($alumni->hasPages())
-            <div class="d-flex justify-content-center">
+            <div class="d-flex justify-content-center py-4">
                 {{ $alumni->links('pagination::bootstrap-5') }}
             </div>
         @endif
+
     @else
+        <!-- Empty State -->
         <div class="empty-state">
             <i class="bi bi-inbox"></i>
             <h3>Tidak Ada Hasil</h3>
-            <p>Alumni yang Anda cari tidak ditemukan. Coba ubah filter pencarian Anda.</p>
+            <p class="text-muted">Alumni yang Anda cari tidak ditemukan. Coba ubah kata kunci atau filter pencarian Anda.</p>
+            <a href="{{ route('public.direktori') }}" class="btn btn-outline-secondary mt-3">
+                <i class="bi bi-arrow-counterclockwise"></i> Reset Semua Filter
+            </a>
         </div>
     @endif
 </div>
-
 @endsection
