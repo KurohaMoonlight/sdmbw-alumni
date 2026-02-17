@@ -41,74 +41,83 @@ class ProfileController extends Controller
             return redirect()->route('login')->with('error', 'Data alumni tidak ditemukan.');
         }
 
-        // VALIDATION - Laravel validator handles mime type WITHOUT finfo extension
-        // It uses getClientMimeType() which gets mime from filename extension
+        // VALIDATION
+        // Menggunakan mimetypes (bukan mimes) agar tidak butuh extension finfo
         $request->validate([
-            'alamat' => 'required|string',
-            'no_hp' => 'required|numeric|digits_between:10,14',
-            'show_no_hp' => 'nullable|in:0,1',
-            'email' => 'nullable|email|max:255',
-            'harapan' => 'nullable|string|max:500',
-            'foto' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048', // Safe without finfo
-            'pendidikan.*.jenjang' => 'nullable|string|max:50',
-            'pendidikan.*.nama_instansi' => 'nullable|string|max:255',
-            'pendidikan.*.program_studi' => 'nullable|string|max:255',
-            'pendidikan.*.tahun_masuk' => 'nullable|numeric|digits:4',
-            'pendidikan.*.tahun_lulus' => 'nullable|numeric|digits:4',
-            'pendidikan.*.is_ongoing' => 'nullable|in:0,1',
+            'alamat'                      => 'required|string',
+            'no_hp'                       => 'required|numeric|digits_between:10,14',
+            'show_no_hp'                  => 'nullable|in:0,1',
+            'email'                       => 'nullable|email|max:255',
+            'harapan'                     => 'nullable|string|max:500',
+            'foto'                        => 'nullable|max:2048|mimetypes:image/jpeg,image/png,image/webp,image/gif',
+            'pendidikan.*.jenjang'        => 'nullable|string|max:50',
+            'pendidikan.*.nama_instansi'  => 'nullable|string|max:255',
+            'pendidikan.*.program_studi'  => 'nullable|string|max:255',
+            'pendidikan.*.tahun_masuk'    => 'nullable|numeric|digits:4',
+            'pendidikan.*.tahun_lulus'    => 'nullable|numeric|digits:4',
+            'pendidikan.*.is_ongoing'     => 'nullable|in:0,1',
             'pekerjaan.*.nama_perusahaan' => 'nullable|string|max:255',
-            'pekerjaan.*.jabatan' => 'nullable|string|max:255',
-            'pekerjaan.*.is_current' => 'nullable|in:0,1',
+            'pekerjaan.*.jabatan'         => 'nullable|string|max:255',
+            'pekerjaan.*.is_current'      => 'nullable|in:0,1',
         ], [
-            'alamat.required' => 'Alamat wajib diisi',
-            'no_hp.required' => 'Nomor HP wajib diisi',
-            'no_hp.numeric' => 'Nomor HP harus berupa angka',
-            'no_hp.digits_between' => 'Nomor HP harus 10-14 digit',
-            'harapan.max' => 'Pesan & Harapan maksimal 500 karakter',
-            'foto.image' => 'File harus berupa gambar',
-            'foto.mimes' => 'Format gambar harus JPG, JPEG, PNG, atau WEBP',
-            'foto.max' => 'Ukuran foto maksimal 2MB',
+            'alamat.required'         => 'Alamat wajib diisi',
+            'no_hp.required'          => 'Nomor HP wajib diisi',
+            'no_hp.numeric'           => 'Nomor HP harus berupa angka',
+            'no_hp.digits_between'    => 'Nomor HP harus 10-14 digit',
+            'harapan.max'             => 'Pesan & Harapan maksimal 500 karakter',
+            'foto.mimetypes'          => 'Format gambar harus JPG, PNG, atau WEBP',
+            'foto.max'                => 'Ukuran foto maksimal 2MB',
         ]);
 
         DB::beginTransaction();
         try {
             // 1. Update Data Alumni Dasar
             $alumni->update([
-                'alamat' => $request->alamat,
-                'no_hp' => $request->no_hp,
-                'show_no_hp' => $request->has('show_no_hp') ? 1 : 0,
-                'email' => $request->email,
-                'harapan' => $request->harapan,
+                'alamat'             => $request->alamat,
+                'no_hp'              => $request->no_hp,
+                'show_no_hp'         => $request->has('show_no_hp') ? 1 : 0,
+                'email'              => $request->email,
+                'harapan'            => $request->harapan,
             ]);
 
-            // 2. Update Username/Email User
+            // 2. Update Email User
             if ($request->filled('email')) {
                 $user->update(['email' => $request->email]);
             }
 
             // 3. Handle Foto Profil
-            // NOTE: extension() method DOES NOT use finfo - it gets extension from filename
-            // This is safe for servers without finfo extension
+            // Menggunakan getClientOriginalExtension() + move()
+            // Tidak membutuhkan extension finfo sama sekali
             if ($request->hasFile('foto')) {
-                // Delete old photo if exists
+                // Hapus foto lama jika ada
                 $fotoLama = $alumni->fotos()->where('is_main', true)->first();
                 if ($fotoLama) {
-                    Storage::disk('public')->delete($fotoLama->path_file);
+                    $oldPath = storage_path('app/public/' . $fotoLama->path_file);
+                    if (file_exists($oldPath)) {
+                        unlink($oldPath);
+                    }
                     $fotoLama->delete();
                 }
 
-                // Generate filename using extension() - NO finfo needed
-                $extension = $request->foto->extension();
-                $filename = 'alumni_' . $alumni->id . '_' . time() . '.' . $extension;
+                // Generate filename - tidak butuh finfo
+                $extension       = strtolower($request->foto->getClientOriginalExtension());
+                $filename        = 'alumni_' . $alumni->id . '_' . time() . '.' . $extension;
+                $destinationPath = storage_path('app/public/foto_alumni');
 
-                // Store file - NO finfo needed
-                $path = $request->foto->storeAs('foto_alumni', $filename, 'public');
+                // Buat folder jika belum ada
+                if (!file_exists($destinationPath)) {
+                    mkdir($destinationPath, 0755, true);
+                }
 
-                // Save to database
+                // Pindahkan file - tidak butuh finfo
+                $request->foto->move($destinationPath, $filename);
+                $path = 'foto_alumni/' . $filename;
+
+                // Simpan ke database
                 $alumni->fotos()->create([
                     'path_file' => $path,
-                    'kategori' => 'profil',
-                    'is_main' => true,
+                    'kategori'  => 'profil',
+                    'is_main'   => true,
                 ]);
             }
 
@@ -129,19 +138,19 @@ class ProfileController extends Controller
                             $isOngoing = (isset($edu['is_ongoing']) && $edu['is_ongoing'] == 1) ? 1 : 0;
 
                             $alumni->pendidikan()->create([
-                                'jenjang' => $edu['jenjang'] ?? null,
+                                'jenjang'       => $edu['jenjang'] ?? null,
                                 'nama_instansi' => $edu['nama_instansi'],
                                 'program_studi' => $edu['program_studi'] ?? null,
-                                'tahun_masuk' => $edu['tahun_masuk'] ?? null,
-                                'tahun_lulus' => $isOngoing ? null : ($edu['tahun_lulus'] ?? null),
-                                'is_ongoing' => $isOngoing,
+                                'tahun_masuk'   => $edu['tahun_masuk'] ?? null,
+                                'tahun_lulus'   => $isOngoing ? null : ($edu['tahun_lulus'] ?? null),
+                                'is_ongoing'    => $isOngoing,
                             ]);
                         }
                     }
                 }
             }
 
-            // 5. Update Riwayat Pekerjaan (dengan is_current)
+            // 5. Update Riwayat Pekerjaan
             if ($request->has('pekerjaan')) {
                 $alumni->pekerjaan()->delete();
                 foreach ($request->pekerjaan as $job) {
@@ -150,8 +159,8 @@ class ProfileController extends Controller
 
                         $alumni->pekerjaan()->create([
                             'nama_perusahaan' => $job['nama_perusahaan'],
-                            'jabatan' => $job['jabatan'] ?? null,
-                            'is_current' => $isCurrent,
+                            'jabatan'         => $job['jabatan'] ?? null,
+                            'is_current'      => $isCurrent,
                         ]);
                     }
                 }
@@ -175,12 +184,12 @@ class ProfileController extends Controller
     {
         $validated = $request->validate([
             'current_password' => 'required',
-            'password' => 'required|min:6|confirmed',
+            'password'         => 'required|min:6|confirmed',
         ], [
             'current_password.required' => 'Password saat ini wajib diisi',
-            'password.required' => 'Password baru wajib diisi',
-            'password.min' => 'Password minimal 6 karakter',
-            'password.confirmed' => 'Konfirmasi password tidak sesuai',
+            'password.required'         => 'Password baru wajib diisi',
+            'password.min'              => 'Password minimal 6 karakter',
+            'password.confirmed'        => 'Konfirmasi password tidak sesuai',
         ]);
 
         /** @var User $user */
