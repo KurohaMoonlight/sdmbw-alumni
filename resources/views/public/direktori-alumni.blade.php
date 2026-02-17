@@ -454,8 +454,9 @@
                                     <i class="bi bi-envelope"></i>
                                     <div>
                                         <span class="alumni-card-item-label">Email:</span>
+                                        {{-- ✅ FIX: Ganti Str::limit() → substr() agar tidak butuh mbstring --}}
                                         <span class="alumni-card-item-value text-break" style="font-size: 0.85rem;">
-                                            {{ Str::limit($item->email, 20) }}
+                                            {{ strlen($item->email) > 20 ? substr($item->email, 0, 20) . '...' : $item->email }}
                                         </span>
                                     </div>
                                 </div>
