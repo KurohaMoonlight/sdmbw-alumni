@@ -61,12 +61,34 @@ class LoginController extends Controller
             if ($user->role === 'alumni' && !$user->is_active) {
                 Auth::logout();
 
-                return back()->withErrors([
-                    'username' => 'Akun Anda belum diverifikasi oleh Admin SD. Harap tunggu atau hubungi Admin via WA.',
-                ])->onlyInput('username');
+                // Load relasi alumni untuk cek status_verifikasi
+                $alumni = $user->alumni;
+
+                if ($alumni && $alumni->status_verifikasi === 'rejected') {
+                    // ── Alumni DITOLAK ──
+                    // Flash 'login_status' = 'rejected' agar blade tampilkan
+                    // alert merah (danger) berbeda dari pending (warning)
+                    return back()
+                        ->withErrors([
+                            'username' => 'Pendaftaran Anda telah ditolak oleh Admin. '
+                                . 'Silahkan hubungi Admin SD Muhammadiyah Birrul Walidain '
+                                . 'untuk informasi lebih lanjut.',
+                        ])
+                        ->onlyInput('username')
+                        ->with('login_status', 'rejected');
+                }
+
+                // ── Alumni PENDING (belum diverifikasi) ──
+                return back()
+                    ->withErrors([
+                        'username' => 'Akun Anda belum diverifikasi oleh Admin SD. '
+                            . 'Harap tunggu atau hubungi Admin via WA.',
+                    ])
+                    ->onlyInput('username')
+                    ->with('login_status', 'pending');
             }
 
-            // Regenerasi session setelah login
+            // Regenerasi session setelah login berhasil
             $request->session()->regenerate();
 
             // Update waktu login terakhir

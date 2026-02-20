@@ -15,7 +15,6 @@
 
     <style>
         :root {
-            /* Warna TETAP SAMA sesuai permintaan */
             --color-bg: #EAE0CF;
             --color-secondary: #94B4C1;
             --color-accent: #547792;
@@ -90,9 +89,7 @@
             font-weight: 400;
         }
 
-        .register-body {
-            padding: 45px;
-        }
+        .register-body { padding: 45px; }
 
         .section-title {
             font-size: 0.8rem;
@@ -106,9 +103,7 @@
             gap: 12px;
         }
 
-        .section-title:first-child {
-            margin-top: 0;
-        }
+        .section-title:first-child { margin-top: 0; }
 
         .section-title::after {
             content: "";
@@ -124,7 +119,6 @@
             margin-bottom: 8px;
         }
 
-        /* Styling Input & Select */
         .input-group-text {
             background-color: #fcfcfc;
             border: 1.5px solid #eee;
@@ -143,14 +137,48 @@
         }
 
         .input-group .form-control {
-            border-radius: 0 12px 12px 0;
+            border-radius: 0;
             border-left: none;
+        }
+
+        /* Field tanpa tombol toggle → border-radius kanan */
+        .input-group .form-control.no-toggle {
+            border-radius: 0 12px 12px 0;
         }
 
         .form-control:focus, .form-select:focus {
             border-color: var(--color-accent);
             background-color: white;
             box-shadow: 0 0 0 4px rgba(84, 119, 146, 0.1);
+        }
+
+        /* ===== TOGGLE PASSWORD BUTTON ===== */
+        .btn-toggle-password {
+            background-color: #fcfcfc;
+            border: 1.5px solid #eee;
+            border-left: none;
+            border-radius: 0 12px 12px 0;
+            color: #adb5bd;
+            padding: 12px 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            line-height: 1;
+        }
+
+        .btn-toggle-password:hover {
+            color: var(--color-accent);
+            background-color: #f0f4f7;
+        }
+
+        .input-group:focus-within .btn-toggle-password {
+            border-color: var(--color-accent);
+            background-color: white;
+        }
+
+        .input-group:focus-within .input-group-text,
+        .input-group:focus-within .form-control {
+            border-color: var(--color-accent);
+            background-color: white;
         }
 
         .btn-register {
@@ -174,9 +202,7 @@
             color: white;
         }
 
-        .required {
-            color: #e63946;
-        }
+        .required { color: #e63946; }
 
         .info-box {
             background-color: #f8fafc;
@@ -193,7 +219,6 @@
             margin-top: 6px;
         }
 
-        /* Alert Styling */
         .alert {
             border-radius: 14px;
             border: none;
@@ -247,7 +272,7 @@
                     <div class="input-group">
                         <span class="input-group-text"><i class="bi bi-hash"></i></span>
                         <input type="text"
-                                class="form-control @error('nisn') is-invalid @enderror"
+                                class="form-control no-toggle @error('nisn') is-invalid @enderror"
                                 id="nisn"
                                 name="nisn"
                                 value="{{ old('nisn') }}"
@@ -265,7 +290,7 @@
                     <div class="input-group">
                         <span class="input-group-text"><i class="bi bi-person-vcard"></i></span>
                         <input type="text"
-                                class="form-control @error('nama_lengkap') is-invalid @enderror"
+                                class="form-control no-toggle @error('nama_lengkap') is-invalid @enderror"
                                 id="nama_lengkap"
                                 name="nama_lengkap"
                                 value="{{ old('nama_lengkap') }}"
@@ -310,39 +335,51 @@
                     <div class="input-group">
                         <span class="input-group-text"><i class="bi bi-at"></i></span>
                         <input type="text"
-                               class="form-control @error('username') is-invalid @enderror"
-                               id="username"
-                               name="username"
-                               value="{{ old('username') }}"
-                               placeholder="Buat username unik"
-                               required>
+                                class="form-control no-toggle @error('username') is-invalid @enderror"
+                                id="username"
+                                name="username"
+                                value="{{ old('username') }}"
+                                placeholder="Buat username (unique, tanpa spasi)"
+                                required>
                     </div>
                 </div>
 
                 <div class="row">
+                    {{-- Password --}}
                     <div class="col-md-6 mb-3">
                         <label for="password" class="form-label">Password <span class="required">*</span></label>
                         <div class="input-group">
                             <span class="input-group-text"><i class="bi bi-shield-lock"></i></span>
                             <input type="password"
-                                   class="form-control @error('password') is-invalid @enderror"
-                                   id="password"
-                                   name="password"
-                                   placeholder="Min. 6 karakter"
-                                   required>
+                                    class="form-control @error('password') is-invalid @enderror"
+                                    id="password"
+                                    name="password"
+                                    placeholder="Min. 6 karakter"
+                                    required>
+                            {{-- Tombol Show/Hide Password --}}
+                            <button class="btn-toggle-password" type="button"
+                                    id="togglePassword" title="Lihat/Sembunyikan Password">
+                                <i class="bi bi-eye-fill" id="toggleIconPassword"></i>
+                            </button>
                         </div>
                     </div>
 
+                    {{-- Konfirmasi Password --}}
                     <div class="col-md-6 mb-3">
                         <label for="password_confirmation" class="form-label">Konfirmasi <span class="required">*</span></label>
                         <div class="input-group">
                             <span class="input-group-text"><i class="bi bi-shield-check"></i></span>
                             <input type="password"
-                                   class="form-control"
-                                   id="password_confirmation"
-                                   name="password_confirmation"
-                                   placeholder="Ulangi password"
-                                   required>
+                                    class="form-control"
+                                    id="password_confirmation"
+                                    name="password_confirmation"
+                                    placeholder="Ulangi password"
+                                    required>
+                            {{-- ✅ Tombol Show/Hide Konfirmasi --}}
+                            <button class="btn-toggle-password" type="button"
+                                    id="toggleConfirm" title="Lihat/Sembunyikan Password">
+                                <i class="bi bi-eye-fill" id="toggleIconConfirm"></i>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -370,11 +407,37 @@
                     </a>
                 </p>
             </div>
-
         </div>
     </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+{{-- Script Show/Hide Password --}}
+<script>
+    function togglePasswordVisibility(inputId, iconId, btnId) {
+        const input  = document.getElementById(inputId);
+        const icon   = document.getElementById(iconId);
+        const btn    = document.getElementById(btnId);
+
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.classList.replace('bi-eye-fill', 'bi-eye-slash-fill');
+            btn.title = 'Sembunyikan Password';
+        } else {
+            input.type = 'password';
+            icon.classList.replace('bi-eye-slash-fill', 'bi-eye-fill');
+            btn.title = 'Lihat Password';
+        }
+    }
+
+    document.getElementById('togglePassword').addEventListener('click', function() {
+        togglePasswordVisibility('password', 'toggleIconPassword', 'togglePassword');
+    });
+
+    document.getElementById('toggleConfirm').addEventListener('click', function() {
+        togglePasswordVisibility('password_confirmation', 'toggleIconConfirm', 'toggleConfirm');
+    });
+</script>
 </body>
 </html>

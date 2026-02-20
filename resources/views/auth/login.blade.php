@@ -11,7 +11,6 @@
 
     <style>
         :root {
-            /* Warna TETAP SAMA sesuai permintaan */
             --color-bg: #EAE0CF;
             --color-secondary: #94B4C1;
             --color-accent: #547792;
@@ -28,7 +27,6 @@
             padding: 20px;
         }
 
-        /* --- Tombol Kembali --- */
         .btn-back-home {
             position: absolute;
             top: 25px;
@@ -54,11 +52,10 @@
             box-shadow: 0 6px 20px rgba(0,0,0,0.15);
         }
 
-        /* --- Card Styling --- */
         .login-card {
             background: white;
             border-radius: 20px;
-            box-shadow: 0 15px 35px rgba(33, 52, 72, 0.15); /* Bayangan lebih halus dengan tone biru gelap */
+            box-shadow: 0 15px 35px rgba(33, 52, 72, 0.15);
             overflow: hidden;
             max-width: 420px;
             width: 100%;
@@ -73,7 +70,6 @@
             position: relative;
         }
 
-        /* Hiasan lengkungan kecil di bawah header (opsional, agar tidak kaku) */
         .login-header::after {
             content: '';
             position: absolute;
@@ -110,7 +106,6 @@
             padding: 40px 40px 30px 40px;
         }
 
-        /* --- Form Inputs dengan Icon --- */
         .input-group-text {
             background-color: #f8f9fa;
             border: 1px solid #dee2e6;
@@ -127,7 +122,6 @@
             transition: all 0.3s;
         }
 
-        /* Efek Focus: Border warna accent & shadow */
         .input-group:focus-within .input-group-text,
         .input-group:focus-within .form-control {
             border-color: var(--color-accent);
@@ -147,7 +141,27 @@
             margin-bottom: 5px;
         }
 
-        /* --- Buttons --- */
+        /* ===== TOGGLE PASSWORD BUTTON ===== */
+        .btn-toggle-password {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-left: none;
+            color: #adb5bd;
+            padding: 12px 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-toggle-password:hover {
+            color: var(--color-accent);
+            background-color: #f0f4f7;
+        }
+
+        .input-group:focus-within .btn-toggle-password {
+            border-color: var(--color-accent);
+            background-color: white;
+        }
+
         .btn-login {
             background: var(--color-accent);
             border: none;
@@ -168,27 +182,17 @@
             box-shadow: 0 6px 15px rgba(33, 52, 72, 0.4);
         }
 
-        /* --- Links --- */
         .link-register {
             color: var(--color-accent);
             font-weight: 700;
             transition: color 0.2s;
         }
+
         .link-register:hover {
             color: var(--color-header);
             text-decoration: underline !important;
         }
 
-        .link-help {
-            color: #6c757d;
-            font-size: 0.85rem;
-            transition: color 0.2s;
-        }
-        .link-help:hover {
-            color: var(--color-accent);
-        }
-
-        /* --- Alerts --- */
         .alert {
             font-size: 0.9rem;
             border-radius: 10px;
@@ -196,15 +200,14 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         }
 
-        /* Responsive adjustments */
         @media (max-width: 576px) {
             .login-card {
                 max-width: 100%;
-                box-shadow: none; /* Flat pada mobile agar ringan */
+                box-shadow: none;
                 background: rgba(255,255,255,0.95);
             }
             .btn-back-home {
-                position: fixed; /* Tetap fixed di mobile */
+                position: fixed;
                 top: 15px;
                 left: 15px;
             }
@@ -225,7 +228,7 @@
 
         <div class="login-body">
 
-            {{-- 1. Alert Success --}}
+            {{-- ── Notifikasi Sukses (misal: setelah logout) ── --}}
             @if(session('success'))
                 <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
                     <div class="d-flex align-items-center">
@@ -236,15 +239,55 @@
                 </div>
             @endif
 
-            {{-- 2. Alert Error --}}
+            {{--
+                ── Notifikasi Error Login ──
+                Tiga kondisi berbeda dengan warna & ikon yang berbeda:
+                1. 'rejected' → alert merah (danger) + ikon silang
+                2. 'pending'  → alert kuning (warning) + ikon jam
+                3. Selain itu → alert kuning (warning) + ikon segitiga
+            --}}
             @if($errors->has('username'))
-                <div class="alert alert-warning alert-dismissible fade show mb-4" role="alert">
-                    <div class="d-flex align-items-center">
-                        <i class="bi bi-exclamation-triangle-fill me-2 fs-5"></i>
-                        <div>{{ $errors->first('username') }}</div>
+                @php
+                    $loginStatus = session('login_status'); // 'rejected' | 'pending' | null
+                @endphp
+
+                @if($loginStatus === 'rejected')
+                    {{-- Alumni DITOLAK → merah --}}
+                    <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
+                        <div class="d-flex align-items-start">
+                            <i class="bi bi-x-octagon-fill me-2 fs-5 mt-1"></i>
+                            <div>
+                                <strong>Pendaftaran Ditolak</strong><br>
+                                {{ $errors->first('username') }}
+                            </div>
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
+
+                @elseif($loginStatus === 'pending')
+                    {{-- Alumni PENDING → kuning + ikon jam --}}
+                    <div class="alert alert-warning alert-dismissible fade show mb-4" role="alert">
+                        <div class="d-flex align-items-start">
+                            <i class="bi bi-hourglass-split me-2 fs-5 mt-1"></i>
+                            <div>
+                                <strong>Menunggu Verifikasi</strong><br>
+                                {{ $errors->first('username') }}
+                            </div>
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+
+                @else
+                    {{-- Error lain (username salah, password salah, dll) → kuning --}}
+                    <div class="alert alert-warning alert-dismissible fade show mb-4" role="alert">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-exclamation-triangle-fill me-2 fs-5"></i>
+                            <div>{{ $errors->first('username') }}</div>
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                @endif
+
             @elseif(session('error'))
                 <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
                     <div class="d-flex align-items-center">
@@ -263,13 +306,13 @@
                     <div class="input-group">
                         <span class="input-group-text"><i class="bi bi-person-fill"></i></span>
                         <input type="text"
-                               class="form-control @error('username') is-invalid @enderror"
-                               id="username"
-                               name="username"
-                               value="{{ old('username') }}"
-                               placeholder="Masukkan username"
-                               required
-                               autofocus>
+                                class="form-control @error('username') is-invalid @enderror"
+                                id="username"
+                                name="username"
+                                value="{{ old('username') }}"
+                                placeholder="Masukkan username"
+                                required
+                                autofocus>
                     </div>
                 </div>
 
@@ -278,11 +321,15 @@
                     <div class="input-group">
                         <span class="input-group-text"><i class="bi bi-lock-fill"></i></span>
                         <input type="password"
-                               class="form-control @error('password') is-invalid @enderror"
-                               id="password"
-                               name="password"
-                               placeholder="••••••••"
-                               required>
+                                class="form-control @error('password') is-invalid @enderror"
+                                id="password"
+                                name="password"
+                                placeholder="••••••••"
+                                required>
+                        {{-- Tombol Show/Hide Password --}}
+                        <button class="btn-toggle-password" type="button" id="togglePassword" title="Lihat/Sembunyikan Password">
+                            <i class="bi bi-eye-fill" id="toggleIcon"></i>
+                        </button>
                     </div>
                 </div>
 
@@ -317,5 +364,23 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    {{-- Show/Hide Password --}}
+    <script>
+        document.getElementById('togglePassword').addEventListener('click', function() {
+            const passwordInput = document.getElementById('password');
+            const toggleIcon    = document.getElementById('toggleIcon');
+
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleIcon.classList.replace('bi-eye-fill', 'bi-eye-slash-fill');
+                this.title = 'Sembunyikan Password';
+            } else {
+                passwordInput.type = 'password';
+                toggleIcon.classList.replace('bi-eye-slash-fill', 'bi-eye-fill');
+                this.title = 'Lihat Password';
+            }
+        });
+    </script>
 </body>
 </html>
