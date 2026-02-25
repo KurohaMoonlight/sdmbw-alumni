@@ -92,7 +92,7 @@ class ProfileController extends Controller
                 // Hapus foto lama jika ada
                 $fotoLama = $alumni->fotos()->where('is_main', true)->first();
                 if ($fotoLama) {
-                    $oldPath = storage_path('app/public/' . $fotoLama->path_file);
+                    $oldPath = public_path('storage/' . $fotoLama->path_file);
                     if (file_exists($oldPath)) {
                         unlink($oldPath);
                     }
@@ -102,7 +102,7 @@ class ProfileController extends Controller
                 // Generate filename - tidak butuh finfo
                 $extension       = strtolower($request->foto->getClientOriginalExtension());
                 $filename        = 'alumni_' . $alumni->id . '_' . time() . '.' . $extension;
-                $destinationPath = storage_path('app/public/foto_alumni');
+                $destinationPath = public_path('storage/foto_alumni');
 
                 // Buat folder jika belum ada
                 if (!file_exists($destinationPath)) {
