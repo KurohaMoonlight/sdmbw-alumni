@@ -4,51 +4,49 @@
 [![Vue.js](https://img.shields.io/badge/Vue.js-3.x-4FC08D?style=for-the-badge&logo=vue.js)](https://vuejs.org)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4.x-38B2AC?style=for-the-badge&logo=tailwind-css)](https://tailwindcss.com)
 [![PHP](https://img.shields.io/badge/PHP-8.2%2B-777BB4?style=for-the-badge&logo=php)](https://php.net)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**SDMBW Alumni Dashboard** adalah platform manajemen alumni modern yang dirancang khusus untuk **SD Muhammadiyah Birrul Walidain Kudus**. Sistem ini berfungsi sebagai pusat data terintegrasi untuk mendukung administrasi sekolah, pelaporan, dan menjaga komunikasi jangka panjang dengan para alumni.
+**SDMBW Alumni Dashboard** adalah Sistem Informasi Manajemen Alumni berbasis web yang dikembangkan untuk **SD Muhammadiyah Birrul Walidain Kudus**. Sistem ini dirancang untuk mendigitalisasi pendataan alumni, memantau *tracer study*, serta memfasilitasi komunikasi antara sekolah dan lulusannya.
 
 ---
 
-## 📌 Deskripsi Proyek
+## 🏛️ Arsitektur Sistem
+Sistem ini dibangun menggunakan **Hybrid Architecture**:
+- **Server Side:** Laravel 12 (Blade Engine untuk struktur & routing).
+- **Client Side:** Vue 3 (Composition API) untuk komponen interaktif dan reaktif.
+- **Styling:** Tailwind CSS 4 (Modern Utility-First) dikombinasikan dengan Bootstrap 5 untuk komponen admin tertentu.
 
-Aplikasi ini menggantikan sistem pendataan konvensional yang manual dengan solusi digital yang efisien. Alumni dapat mengelola profil mereka secara mandiri, sementara sekolah memiliki kontrol penuh untuk memverifikasi dan memantau data secara akurat.
+---
 
-### 🎯 Tujuan Utama
-- **Database Terstruktur:** Menjamin ketersediaan data alumni yang rapi dan selalu diperbarui.
-- **Validitas Tinggi:** Proses verifikasi admin memastikan hanya data valid yang masuk ke sistem.
-- **Efisiensi Kerja:** Otomatisasi pembuatan laporan dan statistik alumni.
-- **Jembatan Komunikasi:** Memudahkan sekolah menjangkau alumni untuk informasi atau kegiatan sekolah.
+## ✨ Fitur Unggulan
+
+### 👤 Modul Alumni
+- **Registrasi & Onboarding:** Pendaftaran mandiri menggunakan NISN.
+- **Manajemen Profil Terpadu:** Update data pendidikan lanjutan, riwayat pekerjaan, dan kontak secara mandiri.
+- **Testimoni Alumni:** Memberikan feedback/kesan pesan yang akan ditampilkan di halaman publik setelah diverifikasi.
+- **Direktori Unified:** Melihat daftar alumni lain dengan fitur pencarian dan filter angkatan.
+
+### 🛡️ Modul Administrator
+- **Dashboard Statistik:** Visualisasi data alumni per angkatan menggunakan grafik interaktif (Chart.js).
+- **Manajemen Alumni:**
+  - **Verifikasi Akun:** Memvalidasi pendaftar baru sebelum masuk ke direktori.
+  - **Import/Export Excel:** Migrasi data massal menggunakan template Excel.
+  - **Reset Password:** Mengelola keamanan akun alumni via NISN.
+- **Tracer Study & Laporan:** Pembuatan laporan berkala berdasarkan data angkatan.
+- **CMS (Content Management System):** Mengelola FAQ dan testimoni yang tampil di halaman depan.
+- **Activity Logs:** Audit trail untuk mencatat setiap aktivitas penting di sistem (Keamanan & Monitoring).
 
 ---
 
 ## 🛠️ Tech Stack
 
-### Backend
-- **Framework:** Laravel 12 (Stable)
-- **Language:** PHP 8.2 / 8.3
-- **Database:** MySQL / MariaDB
-- **Auth:** Laravel Breeze / Fortify (Session Based)
-
-### Frontend
-- **Engine:** Vue.js 3 (Composition API)
-- **Styling:** Tailwind CSS 4 & Bootstrap 5 (Hybrid Setup)
-- **Bundler:** Vite
-- **Charts:** Chart.js with Vue-Chartjs
-
----
-
-## ✨ Fitur Utama
-
-- 🔐 **Autentikasi Aman:** Login & Registrasi berbasis NISN dengan validasi ganda.
-- 📊 **Smart Dashboard:** Ringkasan status akun dan progres kelengkapan profil.
-- 👤 **Self-Service Profil:** Update data pendidikan, pekerjaan, dan kontak secara mandiri.
-- 📂 **Direktori Alumni:** Pencarian alumni dengan filter angkatan yang responsif.
-- 🛡️ **Powerful Admin Panel:** 
-  - Verifikasi pendaftar baru.
-  - Manajemen master data (Angkatan, Kelas, Pekerjaan).
-  - Monitoring log aktivitas sistem.
-- 📈 **Visualisasi Data:** Grafik statistik alumni menggunakan Chart.js.
-- 📱 **Responsive Design:** Pengalaman pengguna yang mulus di HP maupun Desktop.
+| Layer | Teknologi |
+| :--- | :--- |
+| **Backend** | Laravel 12, PHP 8.2+ |
+| **Frontend** | Vue 3, Blade, Tailwind CSS 4, Bootstrap 5 |
+| **Database** | MySQL / MariaDB |
+| **Tools** | Vite, Composer, NPM |
+| **Libraries** | Chart.js, Axios, Laravel Excel |
 
 ---
 
@@ -56,77 +54,62 @@ Aplikasi ini menggantikan sistem pendataan konvensional yang manual dengan solus
 
 ### Prasyarat
 - PHP >= 8.2
-- Composer
-- Node.js & NPM
+- Composer & Node.js (LTS)
 - MySQL Server
 
 ### Langkah-langkah
-
-1. **Clone Repository**
+1. **Clone & Install Dependencies**
    ```bash
    git clone https://github.com/Rakawiratama/sdmbw-alumni.git
    cd sdmbw-alumni
-   ```
-
-2. **Instalasi Dependency PHP**
-   ```bash
    composer install
-   ```
-
-3. **Instalasi Dependency JavaScript**
-   ```bash
    npm install
    ```
 
-4. **Konfigurasi Environment**
+2. **Environment Setup**
    ```bash
    cp .env.example .env
    php artisan key:generate
    ```
-   *Jangan lupa sesuaikan pengaturan `DB_DATABASE`, `DB_USERNAME`, dan `DB_PASSWORD` di file `.env`.*
+   *Konfigurasi `DB_DATABASE`, `DB_USERNAME`, dan `DB_PASSWORD` di file `.env`.*
 
-5. **Migrasi Database & Seeding**
+3. **Database Migration**
    ```bash
    php artisan migrate --seed
    ```
+   *Perintah ini akan membuat tabel dan akun admin default.*
 
-6. **Menjalankan Project**
-   Buka dua terminal:
-   - Terminal 1 (Laravel): `php artisan serve`
-   - Terminal 2 (Vite): `npm run dev`
-
-7. **Akses Aplikasi**
-   Buka [http://127.0.0.1:8000](http://127.0.0.1:8000) di browser Anda.
-
----
-
-## 🔄 Alur Kerja Sistem
-
-1. **Registrasi:** Alumni mendaftar menggunakan NISN.
-2. **Lengkapi Data:** Mengisi detail profil (Pendidikan Terakhir, Pekerjaan, Alamat).
-3. **Verifikasi:** Admin memeriksa validitas data di Dashboard Admin.
-4. **Verified:** Setelah disetujui, profil alumni akan muncul di direktori publik/internal.
+4. **Running the App**
+   Jalankan server Laravel dan compiler Vite secara bersamaan:
+   ```bash
+   # Terminal 1
+   php artisan serve
+   
+   # Terminal 2
+   npm run dev
+   ```
 
 ---
 
-## 🔒 Keamanan
-- **CSRF Protection:** Mencegah serangan cross-site.
-- **Bcrypt Hashing:** Keamanan password tingkat tinggi.
-- **Role Management:** Pemisahan ketat akses Admin vs Alumni.
-- **Input Sanitization:** Validasi ketat di semua layer input.
+## 🔒 Keamanan Sistem
+- **RBAC (Role Based Access Control):** Pemisahan akses ketat antara admin dan alumni.
+- **Throttle Login:** Pembatasan percobaan login untuk mencegah serangan *brute-force*.
+- **CSRF & XSS Protection:** Proteksi bawaan Laravel terhadap serangan web umum.
+- **Secure Hashing:** Menggunakan algoritma Argon2/Bcrypt untuk perlindungan password.
 
 ---
 
-## 🗺️ Roadmap
-- [x] Manajemen Profil Dasar
-- [x] Dashboard Admin & Statistik
-- [ ] Export Data ke PDF/Excel
-- [ ] Integrasi Notifikasi WhatsApp/Email
-- [ ] Sistem Pengumuman Terpusat
+## 🗺️ Roadmap Pengembangan
+- [x] Integrasi Vue 3 & Tailwind 4
+- [x] Sistem Import/Export Excel
+- [x] Log Aktivitas & Audit
+- [ ] Integrasi Notifikasi WhatsApp (Fonnte/Wablas)
+- [ ] Export Laporan ke format PDF (DomPDF)
+- [ ] Dashboard Alumni yang lebih interaktif
 
 ---
 
-## 📝 Lisensi
-Proyek ini dikembangkan untuk kepentingan SD Muhammadiyah Birrul Walidain Kudus.
+## 📝 Lisensi & Kontribusi
+Proyek ini bersifat *open-source* di bawah lisensi MIT. Kontribusi berupa *bug report* atau *pull request* sangat kami hargai.
 
-**Dikembangkan oleh:** [Rakawiratama](https://github.com/Rakawiratama)
+**Maintainer:** [Rakawiratama](https://github.com/Rakawiratama)
