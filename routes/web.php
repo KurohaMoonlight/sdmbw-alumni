@@ -11,6 +11,7 @@ use App\Http\Controllers\Admin\LaporanController;
 use App\Http\Controllers\Admin\ActivityLogController;
 use App\Http\Controllers\Alumni\DashboardController as AlumniDashboard;
 use App\Http\Controllers\Alumni\ProfileController;
+use App\Http\Controllers\CommentController;
 
 /*
 |--------------------------------------------------------------------------
@@ -20,6 +21,7 @@ use App\Http\Controllers\Alumni\ProfileController;
 Route::get('/', [LandingController::class, 'index'])->name('landing.index');
 Route::get('/direktori-alumni', [AlumniPublicController::class, 'direktori'])->name('public.direktori');
 Route::get('/direktori-alumni/{alumni}', [AlumniPublicController::class, 'show'])->name('public.profil');
+Route::post('/comments', [CommentController::class, 'store'])->name('comments.store');
 
 /*
 |--------------------------------------------------------------------------
@@ -50,6 +52,7 @@ Route::middleware(['auth', 'admin'])
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {
+        
         // Dashboard Admin
         Route::get('/dashboard', [AdminDashboard::class, 'index'])->name('dashboard');
 
@@ -133,3 +136,5 @@ Route::middleware(['auth', 'alumni', 'alumni.onboarding'])
             Route::get('/{alumni}', [AlumniPublicController::class, 'show'])->name('show');
         });
     });
+
+

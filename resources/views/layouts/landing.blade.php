@@ -165,6 +165,189 @@
         .navbar-toggler:hover { background: rgba(255,255,255,0.1); }
 
         /* ──────────────────────────────────────────
+            COMMENT SECTION
+        ────────────────────────────────────────── */
+        .comment-section-wrapper {
+            background: #ffffff;
+            border-radius: var(--radius-md);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+            padding: 2.5rem;
+            margin-top: 2rem;
+            margin-bottom: 4rem;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .comment-header-title {
+            font-family: 'DM Serif Display', serif;
+            color: var(--color-primary-dark);
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .comment-subtitle {
+            color: var(--color-text-muted);
+            font-size: 0.95rem;
+            margin-bottom: 2rem;
+        }
+
+        .anon-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(232, 200, 122, 0.2);
+            color: #b48a27;
+            padding: 4px 12px;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 1rem;
+        }
+
+        .comment-form-group {
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+
+        .comment-textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 1rem 1.25rem;
+            border: 1px solid rgba(0,0,0,0.1);
+            border-radius: var(--radius-sm);
+            font-size: 0.95rem;
+            background: var(--color-bg);
+            resize: vertical;
+            transition: var(--transition);
+        }
+
+        .comment-textarea:focus {
+            outline: none;
+            border-color: var(--color-primary-light);
+            box-shadow: 0 0 0 4px rgba(42, 83, 120, 0.1);
+            background: #ffffff;
+        }
+
+        .btn-submit-comment {
+            background: var(--color-primary);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--radius-sm);
+            font-weight: 600;
+            font-size: 0.95rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: var(--transition);
+        }
+
+        .btn-submit-comment:hover {
+            background: var(--color-primary-light);
+            transform: translateY(-2px);
+        }
+
+        .comments-list {
+            margin-top: 3rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .empty-comment-state {
+            background: #fdfdfd;
+            border: 1px dashed rgba(0,0,0,0.1);
+            border-radius: var(--radius-md);
+            padding: 4rem 1rem;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+        }
+
+        .empty-comment-state i {
+            font-size: 3rem;
+            color: rgba(100, 116, 139, 0.3);
+            margin-bottom: 1rem;
+        }
+
+        .comment-card {
+            background: #ffffff;
+            border-radius: var(--radius-sm);
+            padding: 1.5rem;
+            border: 1px solid rgba(0,0,0,0.05);
+            border-left: 4px solid var(--color-accent);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+            transition: var(--transition);
+        }
+
+        .comment-card:hover {
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            transform: translateX(3px);
+        }
+
+        .comment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.75rem;
+        }
+
+        .comment-author {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .author-avatar {
+            width: 36px;
+            height: 36px;
+            background: var(--color-bg);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--color-text-muted);
+        }
+
+        .author-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .author-name {
+            font-weight: 700;
+            color: var(--color-primary-dark);
+            font-size: 0.95rem;
+            line-height: 1.2;
+        }
+
+        .comment-time {
+            font-size: 0.75rem;
+            color: var(--color-text-muted);
+        }
+
+        .comment-body {
+            color: var(--color-text);
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin-left: 48px;
+        }
+
+        @media (max-width: 768px) {
+            .comment-section-wrapper {
+                padding: 1.5rem;
+            }
+            .comment-body {
+                margin-left: 0;
+                margin-top: 1rem;
+            }
+        }
+
+        /* ──────────────────────────────────────────
             FOOTER
         ────────────────────────────────────────── */
         .footer {
@@ -416,6 +599,68 @@
         <main>
             @yield('content')
         </main>
+    </div>
+
+    <!-- COMMENT SECTION -->
+    <div id="comment-section">
+        <div class="container my-5">
+            <div class="comment-section-wrapper">
+                
+                <!-- Badge & Header -->
+                <div class="anon-badge">
+                    <i class="bi bi-incognito"></i> Mode Anonim Aktif
+                </div>
+                <h3 class="comment-header-title">Suara Alumni</h3>
+                <p class="comment-subtitle">Punya kritik, saran, atau sekadar ingin menyapa? Sampaikan pesan Anda secara anonim di sini.</p>
+
+                <!-- Form Komentar (Siap untuk Database Backend) -->
+                <div class="comment-form-container">
+                    <form action="{{ route('comments.store') }}" method="POST">
+                        @csrf
+                        <div class="comment-form-group">
+                            <textarea name="message" class="comment-textarea" placeholder="Tulis pesan Anda di sini... Identitas Anda akan disembunyikan." required></textarea>
+                            @error('message')
+                                <div class="text-danger mt-1" style="font-size: 0.85rem;">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <div class="text-end">
+                            <button type="submit" class="btn-submit-comment">
+                                <i class="bi bi-send-fill"></i> Kirim Pesan
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Comments List (Looping dari Database Backend) -->
+                <div class="comments-list">
+                    {{-- Pastikan variabel $comments dikirim dari Controller Anda --}}
+                    @forelse($comments ?? [] as $comment)
+                        <div class="comment-card">
+                            <div class="comment-header">
+                                <div class="comment-author">
+                                    <div class="author-avatar">
+                                        <i class="bi bi-person-fill"></i>
+                                    </div>
+                                    <div class="author-info">
+                                        {{-- Tampilkan alias dari database, default ke 'Alumni Anonim' jika kosong --}}
+                                        <span class="author-name">{{ $comment->alias ?? 'Alumni Anonim' }}</span>
+                                        <span class="comment-time">{{ $comment->created_at->diffForHumans() }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            {{-- Gunakan nl2br dan e() agar line break aman dari XSS dan enter terdeteksi --}}
+                            <div class="comment-body">{!! nl2br(e($comment->message)) !!}</div>
+                        </div>
+                    @empty
+                        <div class="empty-comment-state">
+                            <i class="bi bi-chat-left-dots"></i>
+                            <p class="text-muted fw-medium mb-0">Belum ada komentar.</p>
+                            <small class="text-muted opacity-75">Jadilah yang pertama membagikan suara Anda!</small>
+                        </div>
+                    @endforelse
+                </div>
+            </div>
+        </div>
     </div>
 
     <footer class="footer">

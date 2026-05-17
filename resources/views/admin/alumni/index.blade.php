@@ -16,5 +16,5 @@
         <template #pagination>
             {{ $alumnis->links() }}
         </template>
-    </alumni-table>
+    </alumi-table>n
 @endsection

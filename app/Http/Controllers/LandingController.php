@@ -6,6 +6,7 @@ use App\Models\Alumni;
 use App\Models\Angkatan;
 use App\Models\Faq;
 use App\Models\Testimoni;
+use App\Models\Comment; // TAMBAHKAN INI: Mengimpor model Comment
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -41,6 +42,10 @@ class LandingController extends Controller
                 ->get();
         });
 
-        return view('landing.index', compact('stats', 'faqs', 'testimonis'));
+        // TAMBAHKAN INI: Mengambil 10 komentar terbaru
+        $comments = Comment::latest()->take(10)->get();
+
+        // UBAH BARIS INI: Tambahkan 'comments' di dalam compact()
+        return view('landing.index', compact('stats', 'faqs', 'testimonis', 'comments'));
     }
 }

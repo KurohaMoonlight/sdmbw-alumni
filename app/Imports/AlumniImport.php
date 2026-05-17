@@ -6,12 +6,10 @@ use App\Models\Alumni;
 use App\Models\Angkatan;
 use App\Models\User;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Hash;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithChunkReading;
 use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Events\AfterImport;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
@@ -21,133 +19,130 @@ class AlumniImport implements ToCollection, WithEvents, WithChunkReading
     protected $adminId;
     protected $cacheKeySuccess;
     protected $cacheKeyFailed;
+    
+    // Optimasi: Cache data untuk menghindari N+1 queries
+    protected $angkatans;
+    protected $existingNisns;
+    protected $existingUsernames;
 
     public function __construct($adminId)
     {
         $this->adminId = $adminId;
         $this->cacheKeySuccess = "import_alumni_{$adminId}_success";
         $this->cacheKeyFailed = "import_alumni_{$adminId}_failed";
+        
+        // Preload data dasar (Memory-intensive but much faster)
+        // Kita gunakan array keyed by unique identifier untuk O(1) lookup
+        $this->angkatans = Angkatan::all()->keyBy(function($item) {
+            return strtolower($item->nama_angkatan);
+        })->toArray();
+        
+        // Kita hanya ambil NISN & Username untuk validasi duplikat cepat
+        $this->existingNisns = Alumni::pluck('nisn', 'nisn')->toArray();
+        $this->existingUsernames = User::pluck('username', 'username')->toArray();
+
+        // Mencegah timeout eksekusi saat import berjalan sinkron
+        set_time_limit(0); 
+        
+        // Melepas kunci sesi (session lock) agar tab/halaman lain tidak stuck saat proses ini berjalan
+        session_write_close();
     }
 
     public function collection(Collection $rows)
     {
+        // Pastikan time limit tetap tidak terbatas pada setiap chunk
+        set_time_limit(0); 
+
         $localImportedCount = 0;
         $localFailedCount = 0;
-
         $dataStarted = false;
 
-        foreach ($rows as $index => $row) {
-            $rowNumber = $index + 1;
-            
-            // Auto-detect header: Jika baris mengandung kata 'Nama' atau 'NISN'
-            $rowString = implode(' ', array_map('strval', $row->toArray()));
-            if (!$dataStarted && (str_contains(strtolower($rowString), 'nama') || str_contains(strtolower($rowString), 'nisn'))) {
-                $dataStarted = true;
-                continue; // Lewati baris header ini
-            }
-
-            if (!$dataStarted) {
-                continue; // Belum ketemu data
-            }
-
-            // Kolom: 0:NO (Skip), 1:Nama, 2:NIPD, 3:JK, 4:NISN, 5:Angkatan, 6:Tahun Lulus
-            $namaLengkap   = trim($row[1] ?? '');
-            $nipd          = trim($row[2] ?? '');
-            $jenisKelamin  = trim($row[3] ?? '');
-            $nisn          = trim($row[4] ?? '');
-            $angkatanInput = trim($row[5] ?? '');
-            $tahunLulus    = trim($row[6] ?? '');
-
-            // Normalisasi NISN (Hilangkan .0 jika terbaca sebagai float dari Excel)
-            if (!empty($nisn)) {
-                $nisn = preg_replace('/\.0$/', '', $nisn);
-                if (str_contains(strtoupper($nisn), 'E+')) {
-                    $nisn = number_format((float)$nisn, 0, '', '');
+        // BUNGKUS DALAM TRANSAKSI TUNGGAL PER CHUNK (SANGAT SIGNIFIKAN UNTUK KECEPATAN)
+        DB::beginTransaction();
+        try {
+            foreach ($rows as $index => $row) {
+                $rowNumber = $index + 1;
+                
+                // Auto-detect header
+                $rowString = implode(' ', array_map('strval', $row->toArray()));
+                if (!$dataStarted && (str_contains(strtolower($rowString), 'nama') || str_contains(strtolower($rowString), 'nisn'))) {
+                    $dataStarted = true;
+                    continue;
                 }
-            }
 
-            // Skip jika baris benar-benar kosong
-            if (empty($namaLengkap) && empty($nisn)) {
-                Log::info("Import Skip Row $rowNumber: Baris kosong.");
-                continue;
-            }
+                if (!$dataStarted) continue;
 
-            // Validasi NISN (Wajib 10 digit angka)
-            if (empty($nisn) || !preg_match('/^[0-9]{10}$/', $nisn)) {
-                Log::warning("Import Skip Row $rowNumber: NISN tidak valid ($nisn) - harus 10 digit.");
-                $localFailedCount++;
-                continue;
-            }
+                $namaLengkap   = trim($row[1] ?? '');
+                $nipd          = trim($row[2] ?? '');
+                $jenisKelamin  = trim($row[3] ?? '');
+                $nisn          = trim($row[4] ?? '');
+                $angkatanInput = trim($row[5] ?? '');
+                $tahunLulus    = trim($row[6] ?? '');
 
-            // Normalisasi Jenis Kelamin
-            $jk = null;
-            $jkInput = strtoupper($jenisKelamin);
-            if (in_array($jkInput, ['L', 'LAKI-LAKI', 'LAKI LAKI', 'PRIA', 'MALE'])) {
-                $jk = 'L';
-            } elseif (in_array($jkInput, ['P', 'PEREMPUAN', 'WANITA', 'FEMALE'])) {
-                $jk = 'P';
-            }
+                // Normalisasi NISN
+                if (!empty($nisn)) {
+                    $nisn = preg_replace('/\.0$/', '', $nisn);
+                    if (str_contains(strtoupper($nisn), 'E+')) {
+                        $nisn = number_format((float)$nisn, 0, '', '');
+                    }
+                }
 
-            // Basic Validation (Nama & Tahun Lulus wajib)
-            if (empty($namaLengkap) || empty($tahunLulus) || empty($angkatanInput)) {
-                Log::warning("Import Skip Row $rowNumber: Nama, Tahun Lulus, atau Angkatan kosong.");
-                $localFailedCount++;
-                continue;
-            }
+                // Skip baris kosong
+                if (empty($namaLengkap) && empty($nisn)) continue;
 
-            // Check duplicate NISN (Cek di DB)
-            if (Alumni::where('nisn', $nisn)->exists()) {
-                $localFailedCount++;
-                continue;
-            }
+                // Validasi NISN & Duplikat (O(1) lookup via array key)
+                if (empty($nisn) || !preg_match('/^[0-9]{10}$/', $nisn)) {
+                    $localFailedCount++;
+                    continue;
+                }
 
-            // Find or Create Angkatan
-            $angkatan = null;
-            
-            // 1. Coba cari berdasarkan ID (jika input adalah angka murni)
-            if (is_numeric($angkatanInput)) {
-                $angkatan = Angkatan::find($angkatanInput);
-            }
-            
-            // 2. Coba cari berdasarkan Nama (Misal: "1" atau "Angkatan 1")
-            if (!$angkatan) {
-                $searchName = is_numeric($angkatanInput) ? "Angkatan {$angkatanInput}" : $angkatanInput;
-                $angkatan = Angkatan::where('nama_angkatan', $searchName)
-                    ->orWhere('nama_angkatan', $angkatanInput)
-                    ->first();
-            }
+                if (isset($this->existingNisns[$nisn])) {
+                    $localFailedCount++;
+                    continue;
+                }
 
-            if (!$angkatan) {
-                // Fallback: Create if not found
-                $tahunMasuk = intval($tahunLulus) - 6; // Asumsi SD 6 tahun
-                $tahunAjaran = $tahunMasuk . '/' . (intval($tahunMasuk) + 1);
+                // Basic Validation
+                if (empty($namaLengkap) || empty($tahunLulus) || empty($angkatanInput)) {
+                    $localFailedCount++;
+                    continue;
+                }
+
+                // Find or Create Angkatan (Optimized)
+                $angkatanObj = null;
+                $searchName = is_numeric($angkatanInput) ? "angkatan {$angkatanInput}" : strtolower($angkatanInput);
                 
-                $angkatan = Angkatan::create([
-                    'nama_angkatan' => is_numeric($angkatanInput) ? "Angkatan {$angkatanInput}" : $angkatanInput,
-                    'tahun_ajaran' => $tahunAjaran,
-                    'status' => 'LULUS'
-                ]);
-            }
+                // Cari di cache array dulu
+                if (isset($this->angkatans[$searchName])) {
+                    $angkatanId = $this->angkatans[$searchName]['id'];
+                } else {
+                    // Create jika benar-benar tidak ada
+                    $tahunMasuk = intval($tahunLulus) - 6;
+                    $tahunAjaran = $tahunMasuk . '/' . (intval($tahunMasuk) + 1);
+                    $newAngkatan = Angkatan::create([
+                        'nama_angkatan' => is_numeric($angkatanInput) ? "Angkatan {$angkatanInput}" : $angkatanInput,
+                        'tahun_ajaran' => $tahunAjaran,
+                        'status' => 'LULUS'
+                    ]);
+                    // Update cache
+                    $this->angkatans[strtolower($newAngkatan->nama_angkatan)] = $newAngkatan->toArray();
+                    $angkatanId = $newAngkatan->id;
+                }
 
-            try {
-                DB::beginTransaction();
-
-                // Username: Gunakan NISN langsung agar mudah diingat
+                // Create User & Alumni
                 $username = $nisn;
-                
-                // Jika NISN duplikat di tabel User (kasus langka), tambahkan suffix
-                $counter = 1;
-                while (User::where('username', $username)->exists()) {
+                if (isset($this->existingUsernames[$username])) {
+                    $counter = 1;
+                    while (isset($this->existingUsernames[$username . $counter])) {
+                        $counter++;
+                    }
                     $username = $nisn . $counter;
-                    $counter++;
                 }
 
                 $user = User::create([
                     'username'             => $username,
-                    'password'             => Hash::make($nisn),
+                    'password'             => $nisn, // Tanpa Hash
                     'role'                 => 'alumni',
                     'is_active'            => true,
-                    'email'                => null, // Email diisi sendiri oleh alumni nanti
                     'must_change_password' => true,
                 ]);
 
@@ -156,23 +151,27 @@ class AlumniImport implements ToCollection, WithEvents, WithChunkReading
                     'nisn' => $nisn,
                     'nipd' => $nipd,
                     'nama_lengkap' => $namaLengkap,
-                    'jenis_kelamin' => $jk,
-                    'angkatan_id' => $angkatan->id,
+                    'jenis_kelamin' => $this->normalizeJK($jenisKelamin),
+                    'angkatan_id' => $angkatanId,
                     'tahun_lulus' => $tahunLulus,
                     'status_verifikasi' => 'verified',
                     'is_profile_complete' => false,
                 ]);
 
-                DB::commit();
+                // Update cache untuk baris berikutnya dalam chunk yang sama
+                $this->existingNisns[$nisn] = $nisn;
+                $this->existingUsernames[$username] = $username;
+                
                 $localImportedCount++;
-            } catch (\Exception $e) {
-                DB::rollBack();
-                $localFailedCount++;
-                Log::error("Import Error on Row $rowNumber: " . $e->getMessage());
             }
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error("Import Chunk Error: " . $e->getMessage());
+            // Kita anggap chunk ini gagal, namun chunk lain tetap bisa jalan jika dipanggil terpisah
         }
 
-        // Akumulasi perhitungan ke Cache (Gunakan increment yang aman)
+        // Akumulasi ke Cache
         if ($localImportedCount > 0) {
             if (!Cache::has($this->cacheKeySuccess)) Cache::put($this->cacheKeySuccess, 0, 3600);
             Cache::increment($this->cacheKeySuccess, $localImportedCount);
@@ -183,7 +182,13 @@ class AlumniImport implements ToCollection, WithEvents, WithChunkReading
         }
     }
 
-
+    private function normalizeJK($input)
+    {
+        $jkInput = strtoupper(trim($input));
+        if (in_array($jkInput, ['L', 'LAKI-LAKI', 'LAKI LAKI', 'PRIA', 'MALE'])) return 'L';
+        if (in_array($jkInput, ['P', 'PEREMPUAN', 'WANITA', 'FEMALE'])) return 'P';
+        return null;
+    }
 
     public function registerEvents(): array
     {
@@ -197,7 +202,7 @@ class AlumniImport implements ToCollection, WithEvents, WithChunkReading
                     'import_alumni',
                     'alumni',
                     null,
-                    "Import data alumni via Excel selesai diproses. Sukses: $success data, Gagal/Skip: $failed data."
+                    "Import data alumni selesai (Optimized). Sukses: $success, Gagal/Skip: $failed."
                 );
             },
         ];
@@ -205,6 +210,6 @@ class AlumniImport implements ToCollection, WithEvents, WithChunkReading
 
     public function chunkSize(): int
     {
-        return 1000;
+        return 500; // Dikurangi sedikit agar memori per chunk lebih aman karena kita cache data
     }
 }
