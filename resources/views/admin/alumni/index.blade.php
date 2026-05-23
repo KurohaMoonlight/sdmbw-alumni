@@ -9,9 +9,10 @@
         :total-rows="{{ $alumnis->total() }}"
         :angkatans="{{ json_encode($angkatans) }}"
         detail-url="{{ url('admin/alumni') }}"
-        export-url="{{ route('admin.alumni.exportForm') }}"
-        import-url="{{ route('admin.alumni.importForm') }}"
-        delete-all-url="{{ route('admin.alumni.deleteAll') }}">
+        export-url="{{ auth()->user()->isAdmin() ? route('admin.alumni.exportForm') : '' }}"
+        import-url="{{ auth()->user()->isAdmin() ? route('admin.alumni.importForm') : '' }}"
+        delete-all-url="{{ auth()->user()->isAdmin() ? route('admin.alumni.deleteAll') : '' }}"
+        :can-edit="{{ auth()->user()->isAdmin() ? 'true' : 'false' }}">
         
         <template #pagination>
             {{ $alumnis->links() }}

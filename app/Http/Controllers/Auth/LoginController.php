@@ -113,6 +113,10 @@ class LoginController extends Controller
             return redirect()->route('admin.dashboard');
         }
 
+        if ($user->role === 'kepala_sekolah') {
+            return redirect()->route('kepala_sekolah.dashboard');
+        }
+
         if ($user->role === 'alumni') {
             return redirect()->route('alumni.dashboard');
         }

@@ -16,6 +16,8 @@ return Application::configure(basePath: dirname(__DIR__))
         // tidak pada seluruh web group agar tidak mengganggu request publik.
         $middleware->alias([
             'admin'              => \App\Http\Middleware\AdminMiddleware::class,
+            'admin_only'         => \App\Http\Middleware\AdminOnlyMiddleware::class,
+            'kepala_sekolah'     => \App\Http\Middleware\KepalaSekolahMiddleware::class,
             'alumni'             => \App\Http\Middleware\AlumniMiddleware::class,
             'alumni.onboarding'  => \App\Http\Middleware\EnsureAlumniOnboarding::class,
         ]);

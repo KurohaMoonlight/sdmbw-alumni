@@ -418,6 +418,7 @@
 
         <nav>
             <ul class="sidebar-menu">
+                @if(auth()->user()->isAdmin())
                 <li>
                     <a href="{{ route('admin.dashboard') }}"
                         class="{{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
@@ -425,6 +426,17 @@
                         <span>Dashboard</span>
                     </a>
                 </li>
+                @endif
+
+                @if(auth()->user()->isKepalaSekolah())
+                <li>
+                    <a href="{{ route('kepala_sekolah.dashboard') }}"
+                        class="{{ request()->routeIs('kepala_sekolah.dashboard') ? 'active' : '' }}">
+                        <i class="bi bi-grid-1x2-fill"></i>
+                        <span>Dashboard Kepala Sekolah</span>
+                    </a>
+                </li>
+                @endif
                 <li>
                     <a href="{{ route('admin.alumni.index') }}"
                         class="{{ request()->routeIs('admin.alumni.*') ? 'active' : '' }}">
@@ -432,6 +444,7 @@
                         <span>Kelola Alumni</span>
                     </a>
                 </li>
+                @if(auth()->user()->isAdmin())
                 <li>
                     <a href="{{ route('admin.angkatan.index') }}"
                        class="{{ request()->routeIs('admin.angkatan.*') ? 'active' : '' }}">
@@ -439,7 +452,9 @@
                         <span>Kelola Angkatan</span>
                     </a>
                 </li>
+                @endif
 
+                @if(auth()->user()->isAdmin())
                 <div class="sidebar-divider"></div>
                 <div class="nav-section-label" style="margin-top:0.25rem;">CMS Publik</div>
                 
@@ -457,6 +472,7 @@
                         <span>Kelola Testimoni</span>
                     </a>
                 </li>
+                @endif
 
                 <div class="sidebar-divider"></div>
                 <div class="nav-section-label" style="margin-top:0.25rem;">Laporan & Log</div>

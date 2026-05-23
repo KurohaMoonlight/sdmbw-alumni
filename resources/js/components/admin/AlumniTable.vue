@@ -133,9 +133,11 @@
                   </button>
                   <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg rounded-4 p-2">
                     <li><a class="dropdown-item rounded-3 py-2" :href="`${detailUrl}/${row.id}`"><i class="bi bi-eye me-2 text-primary"></i> Detail</a></li>
-                    <li><a class="dropdown-item rounded-3 py-2" :href="`${detailUrl}/${row.id}/edit`"><i class="bi bi-pencil me-2 text-warning"></i> Edit</a></li>
-                    <li><hr class="dropdown-divider"></li>
-                    <li><button class="dropdown-item rounded-3 py-2 text-danger" @click="handleDelete(row.id, row.nama_lengkap)"><i class="bi bi-trash me-2"></i> Hapus</button></li>
+                    <template v-if="canEdit">
+                      <li><a class="dropdown-item rounded-3 py-2" :href="`${detailUrl}/${row.id}/edit`"><i class="bi bi-pencil me-2 text-warning"></i> Edit</a></li>
+                      <li><hr class="dropdown-divider"></li>
+                      <li><button class="dropdown-item rounded-3 py-2 text-danger" @click="handleDelete(row.id, row.nama_lengkap)"><i class="bi bi-trash me-2"></i> Hapus</button></li>
+                    </template>
                   </ul>
                 </div>
               </td>
@@ -201,7 +203,8 @@ const props = defineProps({
   detailUrl: { type: String, required: true },
   exportUrl: { type: String, default: '' },
   importUrl: { type: String, default: '' },
-  deleteAllUrl: { type: String, default: '' }
+  deleteAllUrl: { type: String, default: '' },
+  canEdit: { type: Boolean, default: true }
 });
 
 const emit = defineEmits(['filter', 'delete', 'verify']);

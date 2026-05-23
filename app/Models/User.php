@@ -94,6 +94,16 @@ class User extends Authenticatable
     }
 
     /**
+     * Cek apakah user adalah kepala sekolah
+     *
+     * @return bool
+     */
+    public function isKepalaSekolah(): bool
+    {
+        return $this->role === 'kepala_sekolah';
+    }
+
+    /**
      * Cek apakah user adalah alumni
      *
      * @return bool

@@ -191,7 +191,7 @@
       </div>
 
       <!-- Aksi -->
-      <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
+      <div v-if="canEdit" class="card shadow-sm border-0 rounded-4 overflow-hidden">
         <div class="card-header bg-primary text-white py-3 fw-bold">
           <i class="bi bi-gear-fill me-2"></i> Aksi
         </div>
@@ -236,7 +236,8 @@ const props = defineProps({
   alumni: { type: Object, required: true },
   verifyUrl: { type: String, required: true },
   resetPasswordUrl: { type: String, required: true },
-  deleteUrl: { type: String, required: true }
+  deleteUrl: { type: String, required: true },
+  canEdit: { type: Boolean, default: true }
 });
 
 const fotoUtama = computed(() => props.alumni.fotos?.find(f => f.is_main));
