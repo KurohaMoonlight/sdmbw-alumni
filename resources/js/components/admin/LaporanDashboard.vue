@@ -17,9 +17,14 @@
     <div class="card shadow-sm border-0 rounded-4 overflow-hidden mb-4">
       <div class="card-header bg-primary text-white py-3 d-flex align-items-center justify-content-between">
         <div class="fw-bold"><i class="bi bi-bar-chart-fill me-2"></i> Statistik per Angkatan</div>
-        <button @click="printPage" class="btn btn-warning btn-sm fw-bold rounded-pill px-3 no-print">
-          <i class="bi bi-printer-fill me-1"></i> Cetak Laporan
-        </button>
+        <div class="d-flex gap-2 no-print">
+          <a :href="exportPdfUrl" class="btn btn-danger btn-sm fw-bold rounded-pill px-3">
+            <i class="bi bi-file-earmark-pdf-fill me-1"></i> Export PDF
+          </a>
+          <button @click="printPage" class="btn btn-warning btn-sm fw-bold rounded-pill px-3">
+            <i class="bi bi-printer-fill me-1"></i> Cetak Laporan
+          </button>
+        </div>
       </div>
       <div class="table-responsive">
         <table class="table table-hover mb-0 align-middle">
@@ -128,7 +133,8 @@ const props = defineProps({
   stats: { type: Object, required: true },
   angkatanStats: { type: Array, required: true },
   pendidikanStats: { type: Array, required: true },
-  pekerjaanStats: { type: Array, required: true }
+  pekerjaanStats: { type: Array, required: true },
+  exportPdfUrl: { type: String, default: '' }
 });
 
 const statCards = computed(() => [

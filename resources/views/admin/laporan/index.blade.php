@@ -8,6 +8,7 @@
         :stats="{{ json_encode($stats) }}" 
         :angkatan-stats="{{ json_encode($angkatanStats) }}"
         :pendidikan-stats="{{ json_encode($pendidikanStats) }}"
-        :pekerjaan-stats="{{ json_encode($pekerjaanStats) }}">
+        :pekerjaan-stats="{{ json_encode($pekerjaanStats) }}"
+        export-pdf-url="{{ route('admin.laporan.export-pdf') }}">
     </laporan-dashboard>
 @endsection

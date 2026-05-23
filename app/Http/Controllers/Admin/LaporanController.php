@@ -8,6 +8,7 @@ use App\Models\Angkatan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class LaporanController extends Controller
 {
@@ -175,6 +176,62 @@ class LaporanController extends Controller
         }
 
         return $text;
+    }
+
+    /**
+     * Export laporan alumni ke PDF
+     */
+    public function exportPdf(Request $request)
+    {
+        $angkatan = null;
+        if ($request->filled('angkatan_id')) {
+            $angkatan = Angkatan::find($request->angkatan_id);
+        }
+
+        // Bangun query dengan filter yang sama seperti halaman detail angkatan
+        $alumniQuery = Alumni::with(['angkatan', 'pendidikan', 'pekerjaan'])
+            ->select('alumni.*');
+
+        // Filter angkatan
+        if ($angkatan) {
+            $alumniQuery->where('angkatan_id', $angkatan->id);
+        }
+
+        // Filter status verifikasi
+        if ($request->filled('status')) {
+            $alumniQuery->where('status_verifikasi', $request->status);
+        }
+
+        // Ambil dan format data
+        $alumniRaw = $alumniQuery->orderBy('angkatan_id', 'asc')->orderBy('nama_lengkap', 'asc')->get();
+
+        $alumni = $alumniRaw->map(function ($item) {
+            return [
+                'nisn'               => $item->nisn ?? '-',
+                'nama_lengkap'       => $item->nama_lengkap,
+                'angkatan'           => $item->angkatan->nama_angkatan ?? '-',
+                'pekerjaan_terkini'  => $this->formatPekerjaan($item->pekerjaan),
+                'pendidikan_terakhir'=> $this->formatPendidikan($item->pendidikan),
+                'kota_domisili'      => $item->kota ?? '-',
+            ];
+        });
+
+        $data = [
+            'alumni'         => $alumni,
+            'angkatan'       => $angkatan,
+            'filter_status'  => $request->status ?? null,
+            'tanggal_cetak'  => now()->locale('id')->translatedFormat('d F Y'),
+        ];
+
+        $pdf = Pdf::loadView('admin.laporan.pdf', $data)
+            ->setPaper('a4', 'portrait')
+            ->setOption('defaultFont', 'DejaVu Serif')
+            ->setOption('isHtml5ParserEnabled', true)
+            ->setOption('isRemoteEnabled', false);
+
+        $filename = 'laporan-alumni-' . now()->format('Y-m-d') . '.pdf';
+
+        return $pdf->download($filename);
     }
 
     /**

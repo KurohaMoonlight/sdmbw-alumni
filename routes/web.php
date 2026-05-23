@@ -106,6 +106,9 @@ Route::middleware(['auth', 'admin_only'])
             Route::delete('/{log}', [ActivityLogController::class, 'destroy'])->name('destroy');
             Route::delete('/', [ActivityLogController::class, 'clearAll'])->name('clearAll');
         });
+
+        // Laporan Export PDF (Admin Only)
+        Route::get('/laporan/export-pdf', [LaporanController::class, 'exportPdf'])->name('laporan.export-pdf');
     });
 
 /*
