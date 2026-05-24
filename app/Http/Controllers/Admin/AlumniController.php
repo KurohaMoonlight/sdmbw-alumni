@@ -5,25 +5,26 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Alumni;
 use App\Models\Angkatan;
-use App\Models\AdminLog;
-use App\Models\User;
+use App\Services\AlumniService;
 use App\Http\Requests\UpdateAdminAlumniRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Cache;
-use App\Http\Controllers\Admin\LaporanController;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\DB;
+use Exception;
 
 class AlumniController extends Controller
 {
+    private AlumniService $alumniService;
+
+    public function __construct(AlumniService $alumniService)
+    {
+        $this->alumniService = $alumniService;
+    }
+
     /**
      * Tampilkan daftar alumni dengan filter lengkap
      */
     public function index(Request $request)
     {
-        // PERBAIKAN: Hanya memuat relasi yang benar-benar ditampilkan di tabel
-        // untuk menghemat konsumsi RAM server (menghindari N+1 Over-fetching)
         $query = Alumni::with(['user', 'angkatan']);
 
         if ($request->filled('status')) {
@@ -67,132 +68,36 @@ class AlumniController extends Controller
 
     public function update(UpdateAdminAlumniRequest $request, Alumni $alumni)
     {
-        // Validasi ditangani oleh UpdateAdminAlumniRequest
-        $validated = $request->validated();
-
-        DB::beginTransaction();
         try {
-            $alumni->update($validated);
-
-            AdminLog::log(
-                Auth::id(),
-                AdminLog::ACTION_UPDATE_ALUMNI,
-                'alumni',
-                $alumni->id,
-                "Mengupdate data alumni: {$alumni->nama_lengkap} (NISN: {$alumni->nisn})"
-            );
-
-            DB::commit();
-            $this->clearDashboardCache();
+            $this->alumniService->updateAlumni($alumni, $request->validated(), Auth::id());
             return redirect()->route('admin.alumni.show', $alumni)
                 ->with('success', 'Data alumni berhasil diperbarui!');
-        } catch (\Exception $e) {
-            DB::rollBack();
+        } catch (Exception $e) {
             return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage())->withInput();
         }
     }
 
-    /**
-     * Verifikasi / Tolak / Pending status alumni
-     *
-     * FIX BUG 2:
-     * - Action log sekarang terpisah per status menggunakan konstanta AdminLog::ACTION_*
-     *   sehingga activity log menampilkan label berbeda untuk setiap aksi.
-     * - 'verified' → AdminLog::ACTION_VERIFY_ALUMNI ('verify_alumni')  → label "Verifikasi Alumni"
-     * - 'rejected' → AdminLog::ACTION_REJECT_ALUMNI ('reject_alumni')  → label "Tolak Alumni"  ← FIX
-     * - 'pending'  → AdminLog::ACTION_PENDING_ALUMNI ('pending_alumni') → label "Kembalikan ke Pending"
-     */
     public function verify(Request $request, Alumni $alumni)
     {
         $request->validate([
             'status' => ['required', \Illuminate\Validation\Rule::enum(\App\Enums\AlumniStatus::class)],
         ]);
 
-        $status = $request->input('status');
-
-        DB::beginTransaction();
         try {
-            $alumni->update(['status_verifikasi' => $status]);
-
-            if ($alumni->user) {
-                $alumni->user->update([
-                    'is_active' => ($status === \App\Enums\AlumniStatus::VERIFIED->value) ? 1 : 0,
-                ]);
-            }
-
-            // Gunakan konstanta ACTION_* dari AdminLog — tidak ada string literal
-            $action = match($status) {
-                \App\Enums\AlumniStatus::VERIFIED->value => AdminLog::ACTION_VERIFY_ALUMNI,
-                \App\Enums\AlumniStatus::REJECTED->value => AdminLog::ACTION_REJECT_ALUMNI,
-                \App\Enums\AlumniStatus::PENDING->value  => AdminLog::ACTION_PENDING_ALUMNI,
-                default    => AdminLog::ACTION_UPDATE_ALUMNI,
-            };
-
-            $description = match($status) {
-                \App\Enums\AlumniStatus::VERIFIED->value => "Memverifikasi alumni: {$alumni->nama_lengkap} "
-                            . "(NISN: {$alumni->nisn}, Angkatan: {$alumni->angkatan?->nama_angkatan}). "
-                            . "Akun diaktifkan.",
-                \App\Enums\AlumniStatus::REJECTED->value => "Menolak pendaftaran alumni: {$alumni->nama_lengkap} "
-                            . "(NISN: {$alumni->nisn}, Angkatan: {$alumni->angkatan?->nama_angkatan}). "
-                            . "Akun dinonaktifkan.",
-                \App\Enums\AlumniStatus::PENDING->value  => "Mengubah status {$alumni->nama_lengkap} (NISN: {$alumni->nisn}) "
-                            . "kembali ke Pending.",
-                default    => "Mengubah status verifikasi {$alumni->nama_lengkap} ke {$status}.",
-            };
-
-            AdminLog::log(Auth::id(), $action, 'alumni', $alumni->id, $description);
-
-            // Fitur pengiriman Email Notifikasi (Dinonaktifkan)
-            // Mengingat server belum memiliki konfigurasi SMTP, proses verifikasi 
-            // sekarang murni mengubah status di sistem (in-app logic) tanpa mengirim email
-            // agar tidak terjadi timeout atau error.
-
-            DB::commit();
-            $this->clearDashboardCache();
-
-            $message = match($status) {
-                \App\Enums\AlumniStatus::VERIFIED->value => 'Alumni berhasil diverifikasi dan akun diaktifkan.',
-                \App\Enums\AlumniStatus::REJECTED->value => 'Pendaftaran alumni berhasil ditolak dan akun dinonaktifkan.',
-                default    => 'Status verifikasi berhasil diperbarui.',
-            };
-
+            $message = $this->alumniService->verifyAlumni($alumni, $request->status, Auth::id());
             return back()->with('success', $message);
-        } catch (\Exception $e) {
-            DB::rollBack();
+        } catch (Exception $e) {
             return back()->with('error', 'Terjadi kesalahan saat verifikasi: ' . $e->getMessage());
         }
     }
 
     public function resetPassword(Alumni $alumni)
     {
-        DB::beginTransaction();
         try {
-            if (!$alumni->user) {
-                return back()->with('error', 'Akun user tidak ditemukan.');
-            }
-
-            // Generate password acak 8 karakter
-            $newPassword = \Illuminate\Support\Str::random(8);
-
-            $alumni->user->update([
-                'password' => Hash::make($newPassword),
-                'must_change_password' => true,
-            ]);
-
-            AdminLog::log(
-                Auth::id(),
-                AdminLog::ACTION_RESET_PASSWORD,
-                'alumni',
-                $alumni->id,
-                "Reset password alumni: {$alumni->nama_lengkap} (NISN: {$alumni->nisn}) menjadi password acak"
-            );
-
-            DB::commit();
-            $this->clearDashboardCache();
+            $newPassword = $this->alumniService->resetPassword($alumni, Auth::id());
             session()->flash('new_password', $newPassword);
             return back()->with('success', "Password {$alumni->nama_lengkap} berhasil direset. Silakan salin password baru di atas.");
-        } catch (\Exception $e) {
-            DB::rollBack();
+        } catch (Exception $e) {
             return back()->with('error', 'Gagal reset password: ' . $e->getMessage());
         }
     }
@@ -215,70 +120,24 @@ class AlumniController extends Controller
             'password.confirmed' => 'Konfirmasi password tidak sesuai',
         ]);
 
-        DB::beginTransaction();
         try {
-            $alumni = Alumni::where('nisn', $request->nisn)->firstOrFail();
-
-            if (!$alumni->user) {
-                return back()->with('error', 'Akun user tidak ditemukan untuk alumni ini.');
-            }
-
-            $alumni->user->update([
-                'password' => Hash::make($request->password),
-                'must_change_password' => true,
-            ]);
-
-            AdminLog::log(
-                Auth::id(),
-                AdminLog::ACTION_RESET_PASSWORD_NISN,
-                'alumni',
-                $alumni->id,
-                "Reset password alumni (by NISN): {$alumni->nama_lengkap} ({$request->nisn})"
-            );
-
-            DB::commit();
-            $this->clearDashboardCache();
+            $alumni = $this->alumniService->resetPasswordByNisn($request->nisn, $request->password, Auth::id());
             session()->flash('new_password', $request->password);
             return redirect()->route('admin.alumni.resetPasswordForm')
                 ->with('success', "Password alumni NISN {$request->nisn} ({$alumni->nama_lengkap}) berhasil direset!");
-        } catch (\Exception $e) {
-            DB::rollBack();
+        } catch (Exception $e) {
             return back()->with('error', 'Gagal reset password: ' . $e->getMessage())->withInput();
         }
     }
 
     public function destroy($id)
     {
-        $alumni     = Alumni::withTrashed()->findOrFail($id);
-        $namaAlumni = $alumni->nama_lengkap;
-        $nisnAlumni = $alumni->nisn;
-
-        DB::beginTransaction();
         try {
-            $alumni->pendidikan()->delete();
-            $alumni->pekerjaan()->delete();
-            $alumni->fotos()->delete();
-
-            if ($alumni->user_id) {
-                User::where('id', $alumni->user_id)->forceDelete();
-            }
-
-            $alumni->forceDelete();
-
-            AdminLog::log(
-                Auth::id(),
-                AdminLog::ACTION_DELETE_ALUMNI,
-                'alumni',
-                null,
-                "Menghapus permanen data alumni: {$namaAlumni} (NISN: {$nisnAlumni})"
-            );
-
-            DB::commit();
-            $this->clearDashboardCache();
+            $alumni = Alumni::withTrashed()->findOrFail($id);
+            $this->alumniService->deleteAlumni($alumni, Auth::id());
             return redirect()->route('admin.alumni.index')
                 ->with('success', 'Data alumni berhasil dihapus permanen!');
-        } catch (\Exception $e) {
-            DB::rollBack();
+        } catch (Exception $e) {
             return back()->with('error', 'Gagal menghapus data: ' . $e->getMessage());
         }
     }
@@ -327,32 +186,25 @@ class AlumniController extends Controller
 
         $filePath = null;
         try {
-            // Simpan file sementara untuk diproses
             $filePath = $request->file('file')->store('imports');
             
             $import = new \App\Imports\AlumniImport(Auth::id());
             \Maatwebsite\Excel\Facades\Excel::import($import, $filePath);
 
-            $this->clearDashboardCache();
+            $this->alumniService->clearDashboardCache();
             
             return redirect()->route('admin.alumni.index')
                 ->with('success', 'Data alumni berhasil di-import! Silakan cek daftar di bawah.');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             \Illuminate\Support\Facades\Log::error('Import initiation failed: ' . $e->getMessage());
             return back()->with('error', 'Gagal memulai proses import. Silakan coba lagi atau hubungi administrator.');
         } finally {
-            // P1-5 FIX: Selalu hapus file sementara setelah proses selesai
-            // untuk mencegah penumpukan file di storage/imports/
             if ($filePath && \Illuminate\Support\Facades\Storage::exists($filePath)) {
                 \Illuminate\Support\Facades\Storage::delete($filePath);
             }
         }
     }
 
-    /**
-     * Hapus seluruh data alumni dari sistem (Permanen)
-     * Fitur ini berisiko tinggi, sehingga memerlukan konfirmasi teks khusus.
-     */
     public function deleteAll(Request $request)
     {
         $request->validate([
@@ -361,58 +213,13 @@ class AlumniController extends Controller
             'confirmation.in' => 'Kata konfirmasi tidak sesuai. Ketik "HAPUS SEMUA DATA" untuk melanjutkan.',
         ]);
 
-        DB::beginTransaction();
         try {
-            // 1. Hapus data relasi (Pendidikan, Pekerjaan, Foto)
-            DB::table('alumni_pendidikan')->delete();
-            DB::table('alumni_pekerjaan')->delete();
-            DB::table('alumni_fotos')->delete();
-            
-            // 2. Hapus Akun User (Hanya yang rolenya 'alumni')
-            User::where('role', \App\Enums\UserRole::ALUMNI->value)->forceDelete();
-            
-            // 3. Hapus Data Alumni
-            Alumni::query()->forceDelete();
-
-            // 4. Catat Log
-            AdminLog::log(
-                Auth::id(),
-                AdminLog::ACTION_DELETE_ALL_ALUMNI,
-                'alumni',
-                null,
-                "MENGHAPUS SELURUH DATA ALUMNI DAN AKUN TERKAIT DARI SISTEM SECARA PERMANEN."
-            );
-
-            DB::commit();
-            $this->clearDashboardCache();
-
+            $this->alumniService->deleteAllAlumni(Auth::id());
             return redirect()->route('admin.alumni.index')
                 ->with('success', 'Seluruh data alumni berhasil dihapus secara permanen.');
-        } catch (\Exception $e) {
-            DB::rollBack();
+        } catch (Exception $e) {
             \Illuminate\Support\Facades\Log::error('Bulk delete failed: ' . $e->getMessage());
             return back()->with('error', 'Gagal menghapus data masal: ' . $e->getMessage());
         }
-    }
-
-    /**
-     * Hapus semua cache dashboard admin agar statistik selalu up-to-date
-     * setelah ada perubahan data alumni.
-     */
-    private function clearDashboardCache(): void
-    {
-        Cache::forget('admin_dashboard_stats');
-        Cache::forget('admin_dashboard_recent_alumni');
-        Cache::forget('admin_dashboard_angkatan_stats');
-        Cache::forget('admin_dashboard_recent_updates');
-        
-        // Bersihkan cache dashboard Kepala Sekolah
-        Cache::forget('kepala_sekolah_dashboard_stats');
-        Cache::forget('kepala_sekolah_angkatan_stats');
-        Cache::forget('kepala_sekolah_recent_alumni');
-        
-        // Bersihkan juga cache laporan dan landing
-        LaporanController::clearLaporanCache();
-        Cache::forget('landing_stats');
     }
 }

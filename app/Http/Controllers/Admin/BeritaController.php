@@ -4,14 +4,18 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Berita;
+use App\Services\BeritaService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Storage;
-use Intervention\Image\ImageManager;
-use Intervention\Image\Drivers\Gd\Driver;
 
 class BeritaController extends Controller
 {
+    private BeritaService $beritaService;
+
+    public function __construct(BeritaService $beritaService)
+    {
+        $this->beritaService = $beritaService;
+    }
+
     public function index(Request $request)
     {
         $query = Berita::query();
@@ -43,41 +47,31 @@ class BeritaController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'content' => 'required|string',
-            'is_active' => 'nullable|boolean',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:3072',
-            'excerpt' => 'nullable|string|max:300',
-            'is_featured' => 'nullable|boolean'
+            'title'       => 'required|string|max:255',
+            'content'     => 'required|string',
+            'is_active'   => 'nullable|boolean',
+            'image'       => 'nullable|image|mimes:jpeg,png,jpg,webp|max:3072',
+            'excerpt'     => 'nullable|string|max:300',
+            'is_featured' => 'nullable|boolean',
         ]);
 
-        $validated['is_active'] = $request->boolean('is_active');
+        $validated['is_active']   = $request->boolean('is_active');
         $validated['is_featured'] = $request->boolean('is_featured');
 
-        if ($request->hasFile('image')) {
-            if (!Storage::disk('public')->exists('berita')) {
-                Storage::disk('public')->makeDirectory('berita');
+        try {
+            $this->beritaService->createBerita($validated, $request->file('image'));
+        } catch (\Exception $e) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Gagal menyimpan berita.'], 500);
             }
-
-            $filename = 'berita_' . time() . '_' . uniqid() . '.webp';
-            $path = 'berita/' . $filename;
-
-            $manager = new ImageManager(new Driver());
-            $image = $manager->decode($request->file('image')->getPathname());
-            $image->scale(width: 1000);
-            $image->encode(new \Intervention\Image\Encoders\WebpEncoder(80))->save(Storage::disk('public')->path($path));
-
-            $validated['image'] = $path;
+            return back()->with('error', 'Terjadi kesalahan saat menyimpan berita.')->withInput();
         }
-
-        Berita::create($validated);
-        Cache::forget('landing_beritas');
 
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json([
                 'success' => true,
                 'message' => 'Berita berhasil ditambahkan!',
-                'redirect' => route('admin.beritas.index')
+                'redirect' => route('admin.beritas.index'),
             ]);
         }
 
@@ -87,46 +81,31 @@ class BeritaController extends Controller
     public function update(Request $request, Berita $berita)
     {
         $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'content' => 'required|string',
-            'is_active' => 'nullable|boolean',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:3072',
-            'excerpt' => 'nullable|string|max:300',
-            'is_featured' => 'nullable|boolean'
+            'title'       => 'required|string|max:255',
+            'content'     => 'required|string',
+            'is_active'   => 'nullable|boolean',
+            'image'       => 'nullable|image|mimes:jpeg,png,jpg,webp|max:3072',
+            'excerpt'     => 'nullable|string|max:300',
+            'is_featured' => 'nullable|boolean',
         ]);
 
-        $validated['is_active'] = $request->boolean('is_active');
+        $validated['is_active']   = $request->boolean('is_active');
         $validated['is_featured'] = $request->boolean('is_featured');
 
-        if ($request->hasFile('image')) {
-            // Hapus gambar lama jika ada
-            if ($berita->image && Storage::disk('public')->exists($berita->image)) {
-                Storage::disk('public')->delete($berita->image);
+        try {
+            $this->beritaService->updateBerita($berita, $validated, $request->file('image'));
+        } catch (\Exception $e) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Gagal memperbarui berita.'], 500);
             }
-
-            if (!Storage::disk('public')->exists('berita')) {
-                Storage::disk('public')->makeDirectory('berita');
-            }
-
-            $filename = 'berita_' . time() . '_' . uniqid() . '.webp';
-            $path = 'berita/' . $filename;
-
-            $manager = new ImageManager(new Driver());
-            $image = $manager->decode($request->file('image')->getPathname());
-            $image->scale(width: 1000);
-            $image->encode(new \Intervention\Image\Encoders\WebpEncoder(80))->save(Storage::disk('public')->path($path));
-
-            $validated['image'] = $path;
+            return back()->with('error', 'Terjadi kesalahan saat memperbarui berita.')->withInput();
         }
-
-        $berita->update($validated);
-        Cache::forget('landing_beritas');
 
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json([
                 'success' => true,
                 'message' => 'Berita berhasil diperbarui!',
-                'redirect' => route('admin.beritas.index')
+                'redirect' => route('admin.beritas.index'),
             ]);
         }
 
@@ -135,16 +114,15 @@ class BeritaController extends Controller
 
     public function toggleFeatured(Request $request, Berita $berita)
     {
-        $berita->is_featured = !$berita->is_featured;
-        $berita->save();
-
-        Cache::forget('landing_beritas');
+        $isFeatured = $this->beritaService->toggleFeatured($berita);
 
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json([
-                'success' => true,
-                'is_featured' => $berita->is_featured,
-                'message' => $berita->is_featured ? 'Berita berhasil disematkan sebagai unggulan!' : 'Berita dihapus dari unggulan.'
+                'success'     => true,
+                'is_featured' => $isFeatured,
+                'message'     => $isFeatured
+                    ? 'Berita berhasil disematkan sebagai unggulan!'
+                    : 'Berita dihapus dari unggulan.',
             ]);
         }
 
@@ -153,13 +131,11 @@ class BeritaController extends Controller
 
     public function destroy(Berita $berita)
     {
-        // Hapus file gambar
-        if ($berita->image && Storage::disk('public')->exists($berita->image)) {
-            Storage::disk('public')->delete($berita->image);
+        try {
+            $this->beritaService->deleteBerita($berita);
+        } catch (\Exception $e) {
+            return back()->with('error', 'Gagal menghapus berita.');
         }
-
-        $berita->delete();
-        Cache::forget('landing_beritas');
 
         return back()->with('success', 'Berita berhasil dihapus');
     }
