@@ -210,6 +210,6 @@ class AlumniImport implements ToCollection, WithEvents, WithChunkReading
 
     public function chunkSize(): int
     {
-        return 500; // Dikurangi sedikit agar memori per chunk lebih aman karena kita cache data
+        return 100; // Diperkecil menjadi 100 agar memori aman dan commit DB bertahap per 100 data
     }
 }
