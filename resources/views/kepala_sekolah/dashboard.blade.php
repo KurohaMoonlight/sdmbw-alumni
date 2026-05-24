@@ -112,6 +112,26 @@
     </div>
 </div>
 
+{{-- ── CHARTS ── --}}
+<div class="row g-3 mb-4">
+    <div class="col-12">
+        <div class="card-section">
+            <div class="card-section-header">
+                <div class="card-section-title"><i class="bi bi-pie-chart-fill"></i> Distribusi Pendidikan Saat Ini (Tracer Study)</div>
+            </div>
+            <div class="card-section-body text-center">
+                @if(empty($stats['tracer_study']))
+                    <p class="text-muted py-4 mb-0">Belum ada data tracer study yang tersedia.</p>
+                @else
+                    <div style="height: 300px; position: relative; margin: auto; width: 100%; max-width: 500px;">
+                        <canvas id="tracerStudyChart"></canvas>
+                    </div>
+                @endif
+            </div>
+        </div>
+    </div>
+</div>
+
 {{-- ── TABLES ── --}}
 <div class="row g-3">
     {{-- Statistik Per Angkatan --}}
@@ -186,3 +206,42 @@
 </div>
 
 @endsection
+
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const tracerData = @json($stats['tracer_study'] ?? []);
+    if(Object.keys(tracerData).length > 0) {
+        const ctx = document.getElementById('tracerStudyChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(tracerData),
+                datasets: [{
+                    data: Object.values(tracerData),
+                    backgroundColor: [
+                        '#1B3A52', '#16a34a', '#0891b2', '#e53e3e', '#d97706', '#8b5cf6', '#ec4899', '#14b8a6'
+                    ],
+                    borderWidth: 0,
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '60%',
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: {
+                            font: { family: "'Plus Jakarta Sans', sans-serif" }
+                        }
+                    }
+                }
+            }
+        });
+    }
+});
+</script>
+@endpush

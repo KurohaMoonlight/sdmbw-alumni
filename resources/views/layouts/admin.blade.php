@@ -446,6 +446,13 @@
                 </li>
                 @if(auth()->user()->isAdmin())
                 <li>
+                    <a href="{{ route('admin.users.index') }}"
+                       class="{{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
+                        <i class="bi bi-person-badge"></i>
+                        <span>Kelola Pengguna</span>
+                    </a>
+                </li>
+                <li>
                     <a href="{{ route('admin.angkatan.index') }}"
                        class="{{ request()->routeIs('admin.angkatan.*') ? 'active' : '' }}">
                         <i class="bi bi-calendar3"></i>
@@ -540,6 +547,16 @@
             </header>
 
             <div class="content-body">
+                @if(session('new_password'))
+                    <div class="alert alert-success d-flex align-items-center justify-content-between mb-4 shadow-sm" style="border: 1px solid #16a34a;">
+                        <div>
+                            <strong><i class="bi bi-key-fill me-2"></i> Password Berhasil Direset!</strong><br>
+                            Password baru untuk alumni ini adalah: <code class="fs-5 ms-2 fw-bold text-dark px-2 py-1 bg-light rounded">{{ session('new_password') }}</code>
+                            <small class="d-block mt-1 text-muted">Mohon salin dan berikan password ini ke alumni yang bersangkutan. Password ini hanya ditampilkan sekali.</small>
+                        </div>
+                        <button class="btn btn-sm btn-success fw-bold px-3 py-2" onclick="navigator.clipboard.writeText('{{ session('new_password') }}'); this.innerHTML='<i class=\'bi bi-check2-all\'></i> Tersalin!'; setTimeout(()=>this.innerHTML='<i class=\'bi bi-clipboard\'></i> Salin',2000);"><i class="bi bi-clipboard"></i> Salin</button>
+                    </div>
+                @endif
                 @yield('content')
             </div>
         </div>

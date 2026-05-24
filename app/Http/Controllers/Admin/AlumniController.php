@@ -189,7 +189,8 @@ class AlumniController extends Controller
 
             DB::commit();
             $this->clearDashboardCache();
-            return back()->with('success', "Password {$alumni->nama_lengkap} berhasil direset. PASSWORD BARU: {$newPassword} (Mohon catat dan berikan ke alumni bersangkutan)");
+            session()->flash('new_password', $newPassword);
+            return back()->with('success', "Password {$alumni->nama_lengkap} berhasil direset. Silakan salin password baru di atas.");
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->with('error', 'Gagal reset password: ' . $e->getMessage());
@@ -237,6 +238,7 @@ class AlumniController extends Controller
 
             DB::commit();
             $this->clearDashboardCache();
+            session()->flash('new_password', $request->password);
             return redirect()->route('admin.alumni.resetPasswordForm')
                 ->with('success', "Password alumni NISN {$request->nisn} ({$alumni->nama_lengkap}) berhasil direset!");
         } catch (\Exception $e) {
@@ -403,6 +405,11 @@ class AlumniController extends Controller
         Cache::forget('admin_dashboard_recent_alumni');
         Cache::forget('admin_dashboard_angkatan_stats');
         Cache::forget('admin_dashboard_recent_updates');
+        
+        // Bersihkan cache dashboard Kepala Sekolah
+        Cache::forget('kepala_sekolah_dashboard_stats');
+        Cache::forget('kepala_sekolah_angkatan_stats');
+        Cache::forget('kepala_sekolah_recent_alumni');
         
         // Bersihkan juga cache laporan dan landing
         LaporanController::clearLaporanCache();

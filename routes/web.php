@@ -16,6 +16,7 @@ use App\Http\Controllers\ForumController;
 use App\Http\Controllers\ForumThreadController;
 use App\Http\Controllers\ForumReplyController;
 use App\Http\Controllers\Admin\ForumController as AdminForumController;
+use App\Http\Controllers\Admin\UserController;
 
 /*
 |--------------------------------------------------------------------------
@@ -85,6 +86,9 @@ Route::middleware(['auth', 'admin_only'])
         
         // Dashboard Admin
         Route::get('/dashboard', [AdminDashboard::class, 'index'])->name('dashboard');
+
+        // Kelola Pengguna (Admin & Kepala Sekolah)
+        Route::resource('users', UserController::class)->except(['show']);
 
         // Kelola Angkatan
         Route::resource('angkatan', AngkatanController::class);

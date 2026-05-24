@@ -47,8 +47,10 @@ class LandingController extends Controller
             return Berita::where('is_active', true)->latest()->take(6)->get();
         });
 
-        // TAMBAHKAN INI: Mengambil 10 komentar terbaru
-        $comments = Comment::latest()->take(10)->get();
+        // TAMBAHKAN INI: Mengambil 10 komentar terbaru dengan cache
+        $comments = \Illuminate\Support\Facades\Cache::remember('landing_comments', 60 * 60, function () {
+            return Comment::latest()->take(10)->get();
+        });
 
         // UBAH BARIS INI: Tambahkan 'comments' di dalam compact()
         return view('landing.index', compact('stats', 'faqs', 'testimonis', 'comments', 'beritas'));

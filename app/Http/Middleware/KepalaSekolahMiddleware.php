@@ -21,7 +21,7 @@ class KepalaSekolahMiddleware
         }
 
         if (Auth::user()->role !== 'admin' && Auth::user()->role !== 'kepala_sekolah') {
-            return redirect()->route('login');
+            abort(403, 'Anda tidak memiliki akses ke halaman ini.');
         }
 
         return $next($request);
