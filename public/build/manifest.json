@@ -1,0 +1,264 @@
+{
+  "__plugin-vue_export-helper-DlAUqK2U.js": {
+    "file": "assets/_plugin-vue_export-helper-DlAUqK2U.js",
+    "name": "_plugin-vue_export-helper"
+  },
+  "resources/css/app.css": {
+    "file": "assets/app-DLKf6xkg.css",
+    "src": "resources/css/app.css",
+    "isEntry": true,
+    "name": "app",
+    "names": [
+      "app.css"
+    ]
+  },
+  "resources/js/app.js": {
+    "file": "assets/app-asFsLHZl.js",
+    "name": "app",
+    "src": "resources/js/app.js",
+    "isEntry": true,
+    "dynamicImports": [
+      "resources/js/components/shared/SearchFilter.vue",
+      "resources/js/components/shared/DataTable.vue",
+      "resources/js/components/shared/StatusBadge.vue",
+      "resources/js/components/shared/ConfirmModal.vue",
+      "resources/js/components/shared/Pagination.vue",
+      "resources/js/components/alumni/DashboardStats.vue",
+      "resources/js/components/alumni/AlumniProfile.vue",
+      "resources/js/components/alumni/ProfileForm.vue",
+      "resources/js/components/admin/AdminStats.vue",
+      "resources/js/components/admin/AlumniTable.vue",
+      "resources/js/components/admin/AngkatanTable.vue",
+      "resources/js/components/admin/AlumniDetail.vue",
+      "resources/js/components/admin/AlumniForm.vue",
+      "resources/js/components/admin/LaporanDashboard.vue",
+      "resources/js/components/admin/ActivityLogs.vue",
+      "resources/js/components/admin/AdminCharts.vue",
+      "resources/js/components/landing/LandingPage.vue",
+      "resources/js/components/auth/LoginForm.vue"
+    ]
+  },
+  "resources/js/components/admin/ActivityLogs.vue": {
+    "file": "assets/ActivityLogs-B_YV8jDP.js",
+    "name": "ActivityLogs",
+    "src": "resources/js/components/admin/ActivityLogs.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "resources/js/components/shared/Pagination.vue",
+      "__plugin-vue_export-helper-DlAUqK2U.js"
+    ],
+    "css": [
+      "assets/ActivityLogs-V68zhzp1.css"
+    ]
+  },
+  "resources/js/components/admin/AdminCharts.vue": {
+    "file": "assets/AdminCharts-Bqal_nky.js",
+    "name": "AdminCharts",
+    "src": "resources/js/components/admin/AdminCharts.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "__plugin-vue_export-helper-DlAUqK2U.js"
+    ],
+    "css": [
+      "assets/AdminCharts-BsV_O8Zv.css"
+    ]
+  },
+  "resources/js/components/admin/AdminStats.vue": {
+    "file": "assets/AdminStats-CzYSa8sb.js",
+    "name": "AdminStats",
+    "src": "resources/js/components/admin/AdminStats.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "__plugin-vue_export-helper-DlAUqK2U.js"
+    ],
+    "css": [
+      "assets/AdminStats-De5dz6aD.css"
+    ]
+  },
+  "resources/js/components/admin/AlumniDetail.vue": {
+    "file": "assets/AlumniDetail-CZBNvcwA.js",
+    "name": "AlumniDetail",
+    "src": "resources/js/components/admin/AlumniDetail.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "__plugin-vue_export-helper-DlAUqK2U.js"
+    ],
+    "css": [
+      "assets/AlumniDetail-DwvWvRcb.css"
+    ]
+  },
+  "resources/js/components/admin/AlumniForm.vue": {
+    "file": "assets/AlumniForm-B_iU6aTQ.js",
+    "name": "AlumniForm",
+    "src": "resources/js/components/admin/AlumniForm.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "__plugin-vue_export-helper-DlAUqK2U.js"
+    ],
+    "css": [
+      "assets/AlumniForm-CwcRQPm4.css"
+    ]
+  },
+  "resources/js/components/admin/AlumniTable.vue": {
+    "file": "assets/AlumniTable-CjljMNdV.js",
+    "name": "AlumniTable",
+    "src": "resources/js/components/admin/AlumniTable.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "__plugin-vue_export-helper-DlAUqK2U.js"
+    ],
+    "css": [
+      "assets/AlumniTable-CiaBTvPJ.css"
+    ]
+  },
+  "resources/js/components/admin/AngkatanTable.vue": {
+    "file": "assets/AngkatanTable-DhepTivS.js",
+    "name": "AngkatanTable",
+    "src": "resources/js/components/admin/AngkatanTable.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "__plugin-vue_export-helper-DlAUqK2U.js"
+    ],
+    "css": [
+      "assets/AngkatanTable-CK6iGTuK.css"
+    ]
+  },
+  "resources/js/components/admin/LaporanDashboard.vue": {
+    "file": "assets/LaporanDashboard-BZtIcUUO.js",
+    "name": "LaporanDashboard",
+    "src": "resources/js/components/admin/LaporanDashboard.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "__plugin-vue_export-helper-DlAUqK2U.js"
+    ],
+    "css": [
+      "assets/LaporanDashboard-B5XqbWFb.css"
+    ]
+  },
+  "resources/js/components/alumni/AlumniProfile.vue": {
+    "file": "assets/AlumniProfile-C-9q6HQZ.js",
+    "name": "AlumniProfile",
+    "src": "resources/js/components/alumni/AlumniProfile.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "__plugin-vue_export-helper-DlAUqK2U.js"
+    ],
+    "css": [
+      "assets/AlumniProfile-CRgnO2Yy.css"
+    ]
+  },
+  "resources/js/components/alumni/DashboardStats.vue": {
+    "file": "assets/DashboardStats-Ctql7KcR.js",
+    "name": "DashboardStats",
+    "src": "resources/js/components/alumni/DashboardStats.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "__plugin-vue_export-helper-DlAUqK2U.js"
+    ],
+    "css": [
+      "assets/DashboardStats-BCdk4Qkp.css"
+    ]
+  },
+  "resources/js/components/alumni/ProfileForm.vue": {
+    "file": "assets/ProfileForm-CCsYRfjC.js",
+    "name": "ProfileForm",
+    "src": "resources/js/components/alumni/ProfileForm.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "__plugin-vue_export-helper-DlAUqK2U.js"
+    ],
+    "css": [
+      "assets/ProfileForm-V8YHvFIw.css"
+    ]
+  },
+  "resources/js/components/auth/LoginForm.vue": {
+    "file": "assets/LoginForm-BpXsoL_A.js",
+    "name": "LoginForm",
+    "src": "resources/js/components/auth/LoginForm.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "__plugin-vue_export-helper-DlAUqK2U.js"
+    ],
+    "css": [
+      "assets/LoginForm-Bu0zpDek.css"
+    ]
+  },
+  "resources/js/components/landing/LandingPage.vue": {
+    "file": "assets/LandingPage-Dot8IX4C.js",
+    "name": "LandingPage",
+    "src": "resources/js/components/landing/LandingPage.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "__plugin-vue_export-helper-DlAUqK2U.js"
+    ],
+    "css": [
+      "assets/LandingPage-CZW0Nn5m.css"
+    ]
+  },
+  "resources/js/components/shared/ConfirmModal.vue": {
+    "file": "assets/ConfirmModal-CYSrj6h1.js",
+    "name": "ConfirmModal",
+    "src": "resources/js/components/shared/ConfirmModal.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js"
+    ]
+  },
+  "resources/js/components/shared/DataTable.vue": {
+    "file": "assets/DataTable-BNo7f2lF.js",
+    "name": "DataTable",
+    "src": "resources/js/components/shared/DataTable.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js"
+    ]
+  },
+  "resources/js/components/shared/Pagination.vue": {
+    "file": "assets/Pagination-XWJ2J_2o.js",
+    "name": "Pagination",
+    "src": "resources/js/components/shared/Pagination.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "__plugin-vue_export-helper-DlAUqK2U.js"
+    ],
+    "css": [
+      "assets/Pagination-YOaV9CMk.css"
+    ]
+  },
+  "resources/js/components/shared/SearchFilter.vue": {
+    "file": "assets/SearchFilter-DMVMTV6r.js",
+    "name": "SearchFilter",
+    "src": "resources/js/components/shared/SearchFilter.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "__plugin-vue_export-helper-DlAUqK2U.js"
+    ],
+    "css": [
+      "assets/SearchFilter-CAxXRpvK.css"
+    ]
+  },
+  "resources/js/components/shared/StatusBadge.vue": {
+    "file": "assets/StatusBadge-fs28SnN0.js",
+    "name": "StatusBadge",
+    "src": "resources/js/components/shared/StatusBadge.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js"
+    ]
+  }
+}
