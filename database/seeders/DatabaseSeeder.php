@@ -15,6 +15,8 @@ class DatabaseSeeder extends Seeder
         $this->call([
             AngkatanSeeder::class,
             AdminSeeder::class,
+            ForumSeeder::class,
+            FaqSeeder::class,
         ]);
 
         $this->command->info('🎉 Semua seeder berhasil dijalankan!');

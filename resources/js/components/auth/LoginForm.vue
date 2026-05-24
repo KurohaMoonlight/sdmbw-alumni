@@ -59,9 +59,18 @@
       </form>
 
         <div class="mt-4 pt-2 text-center">
-          <a href="https://wa.me/6281248076886" target="_blank" class="text-success small fw-bold text-decoration-none d-inline-flex align-items-center gap-2 link-hover-move">
-            <i class="bi bi-whatsapp fs-5"></i> Lupa Password? Hubungi Admin
-          </a>
+          <p class="small text-muted mb-2">Butuh bantuan? Hubungi Admin via WhatsApp:</p>
+          <div class="d-flex flex-column gap-2 align-items-center">
+            <a :href="waUrl('Halo Admin, saya lupa password akun alumni SDMBW saya. Mohon bantuannya 🙏')" target="_blank" class="text-success small fw-bold text-decoration-none d-inline-flex align-items-center gap-2 link-hover-move">
+              <i class="bi bi-whatsapp fs-5"></i> 🔑 Saya Lupa Password
+            </a>
+            <a :href="waUrl('Halo Admin, saya ingin konsultasi mengenai portal alumni SDMBW. Mohon bantuannya 🙏')" target="_blank" class="text-success small fw-bold text-decoration-none d-inline-flex align-items-center gap-2 link-hover-move">
+              <i class="bi bi-whatsapp fs-5"></i> 💬 Mau Konsultasi
+            </a>
+            <a :href="waUrl('Halo Admin, saya ingin mendaftar sebagai alumni SDMBW di portal ini. Mohon bantuannya 🙏')" target="_blank" class="text-success small fw-bold text-decoration-none d-inline-flex align-items-center gap-2 link-hover-move">
+              <i class="bi bi-whatsapp fs-5"></i> 📋 Belum Punya Akun
+            </a>
+          </div>
         </div>
     </div>
   </div>
@@ -86,6 +95,10 @@ const form = ref({
 const loading = ref(false);
 const errorMsg = ref(props.initialError);
 const showPassword = ref(false);
+
+const waUrl = (message) => {
+  return 'https://wa.me/6281248076886?text=' + encodeURIComponent(message);
+};
 
 const handleSubmit = async () => {
   loading.value = true;
