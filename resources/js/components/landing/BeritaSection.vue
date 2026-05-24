@@ -1,5 +1,5 @@
 <template>
-  <section v-if="beritas && beritas.length > 0" class="berita-section py-5 my-3 bg-white position-relative">
+  <section id="berita" class="berita-section py-5 my-3 bg-white position-relative">
     <div class="container py-5">
       <div class="text-center mb-5 fade-in-up">
         <div class="hero-badge-container mb-3">
@@ -11,7 +11,7 @@
         <p class="text-muted mx-auto" style="max-width: 600px;">Ikuti berita, pengumuman, dan agenda kegiatan terbaru seputar SD Muhammadiyah Birrul Walidain.</p>
       </div>
 
-      <div class="row g-4 justify-content-center">
+      <div v-if="beritas && beritas.length > 0" class="row g-4 justify-content-center">
         <div class="col-md-6 col-lg-4" v-for="(berita, i) in beritas" :key="berita.id">
           <div
             class="berita-card glass-card h-100 d-flex flex-column fade-in-up overflow-hidden position-relative"
@@ -39,6 +39,12 @@
             </div>
           </div>
         </div>
+      </div>
+      <div v-else class="text-center py-5 fade-in-up" style="animation-delay: 0.2s">
+        <div class="empty-state-icon mb-3">
+          <i class="bi bi-journal-x fs-1 text-muted opacity-50"></i>
+        </div>
+        <p class="text-muted fs-5">Sekarang tidak ada berita.</p>
       </div>
 
       <div class="text-center mt-5 fade-in-up" style="animation-delay: 0.4s">
