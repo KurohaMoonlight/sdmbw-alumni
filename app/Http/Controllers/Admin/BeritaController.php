@@ -16,6 +16,10 @@ class BeritaController extends Controller
         $this->beritaService = $beritaService;
     }
 
+    /**
+     * Menampilkan daftar berita untuk halaman admin.
+     * Mendukung pencarian teks dan filter berdasarkan status aktif/non-aktif.
+     */
     public function index(Request $request)
     {
         $query = Berita::query();
@@ -44,6 +48,10 @@ class BeritaController extends Controller
         return view('admin.berita.index', compact('beritas'));
     }
 
+    /**
+     * Menyimpan data berita baru ke dalam sistem.
+     * Menangani request dari form HTML biasa maupun request AJAX/JSON (misalnya dari modal).
+     */
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -78,6 +86,10 @@ class BeritaController extends Controller
         return back()->with('success', 'Berita berhasil ditambahkan');
     }
 
+    /**
+     * Memperbarui data berita yang sudah ada.
+     * Mendukung pembaruan file gambar jika file baru diunggah oleh pengguna.
+     */
     public function update(Request $request, Berita $berita)
     {
         $validated = $request->validate([
@@ -112,6 +124,10 @@ class BeritaController extends Controller
         return back()->with('success', 'Berita berhasil diperbarui');
     }
 
+    /**
+     * Mengubah status unggulan (featured) pada sebuah berita.
+     * Berita unggulan akan mendapatkan penanda khusus saat ditampilkan di halaman utama.
+     */
     public function toggleFeatured(Request $request, Berita $berita)
     {
         $isFeatured = $this->beritaService->toggleFeatured($berita);
@@ -129,6 +145,10 @@ class BeritaController extends Controller
         return back()->with('success', 'Status unggulan berhasil diperbarui');
     }
 
+    /**
+     * Menghapus berita secara permanen dari sistem.
+     * File gambar terkait akan otomatis dibersihkan oleh BeritaService.
+     */
     public function destroy(Berita $berita)
     {
         try {

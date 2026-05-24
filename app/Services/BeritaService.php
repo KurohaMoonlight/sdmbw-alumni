@@ -15,7 +15,8 @@ use Exception;
 class BeritaService
 {
     /**
-     * Create a new Berita record.
+     * Membuat data Berita baru.
+     * Termasuk memproses upload gambar jika ada.
      */
     public function createBerita(array $data, ?UploadedFile $imageFile): Berita
     {
@@ -35,7 +36,7 @@ class BeritaService
             return $berita;
         } catch (Exception $e) {
             DB::rollBack();
-            // Orphan file cleanup
+            // Membersihkan file yatim (orphan file) jika database gagal menyimpan
             $this->deleteUploadedFile($uploadedPath);
             Log::error('BeritaService@createBerita failed: ' . $e->getMessage());
             throw $e;
@@ -43,7 +44,8 @@ class BeritaService
     }
 
     /**
-     * Update an existing Berita record.
+     * Memperbarui data Berita yang sudah ada.
+     * Mengganti gambar lama jika ada gambar baru yang diunggah.
      */
     public function updateBerita(Berita $berita, array $data, ?UploadedFile $imageFile): Berita
     {
@@ -60,7 +62,7 @@ class BeritaService
             $berita->update($data);
             DB::commit();
 
-            // Delete old image only after successful DB update
+            // Menghapus gambar lama hanya jika update database berhasil
             if ($uploadedPath && $oldImage) {
                 $this->deleteUploadedFile($oldImage);
             }
@@ -69,7 +71,7 @@ class BeritaService
             return $berita;
         } catch (Exception $e) {
             DB::rollBack();
-            // Orphan file cleanup
+            // Membersihkan file gambar baru yang terlanjur diunggah jika gagal
             $this->deleteUploadedFile($uploadedPath);
             Log::error('BeritaService@updateBerita failed: ' . $e->getMessage());
             throw $e;
@@ -77,7 +79,7 @@ class BeritaService
     }
 
     /**
-     * Delete a Berita record.
+     * Menghapus data Berita beserta file gambarnya.
      */
     public function deleteBerita(Berita $berita): void
     {
@@ -88,7 +90,7 @@ class BeritaService
             $berita->delete();
             DB::commit();
 
-            // Delete image after successful delete
+            // Menghapus gambar fisik setelah data berhasil dihapus dari database
             $this->deleteUploadedFile($imagePath);
             Cache::forget('landing_beritas');
         } catch (Exception $e) {
@@ -99,7 +101,7 @@ class BeritaService
     }
 
     /**
-     * Toggle featured status of a Berita.
+     * Mengubah status unggulan (featured) dari sebuah Berita.
      */
     public function toggleFeatured(Berita $berita): bool
     {
@@ -112,7 +114,7 @@ class BeritaService
     }
 
     /**
-     * Upload and compress Berita image.
+     * Mengunggah dan mengompresi gambar Berita menjadi format WebP.
      */
     private function uploadImage(UploadedFile $file): string
     {
@@ -133,7 +135,7 @@ class BeritaService
     }
 
     /**
-     * Delete file from public storage if exists.
+     * Menghapus file fisik dari storage public jika file tersebut ada.
      */
     private function deleteUploadedFile(?string $path): void
     {

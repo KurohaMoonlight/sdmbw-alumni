@@ -18,7 +18,7 @@ use Exception;
 class AlumniService
 {
     /**
-     * Update Alumni basic info.
+     * Memperbarui informasi dasar Alumni.
      */
     public function updateAlumni(Alumni $alumni, array $data, int $adminId): Alumni
     {
@@ -45,7 +45,7 @@ class AlumniService
     }
 
     /**
-     * Verify or Reject an Alumni registration.
+     * Memverifikasi, Menolak, atau Mengembalikan status pendaftaran Alumni.
      */
     public function verifyAlumni(Alumni $alumni, string $status, int $adminId): string
     {
@@ -90,7 +90,7 @@ class AlumniService
     }
 
     /**
-     * Reset password to a random string.
+     * Mereset password user menjadi string acak secara otomatis.
      */
     public function resetPassword(Alumni $alumni, int $adminId): string
     {
@@ -126,7 +126,7 @@ class AlumniService
     }
 
     /**
-     * Reset password by NISN using a specific password.
+     * Mereset password user berdasarkan NISN dengan password spesifik yang diberikan.
      */
     public function resetPasswordByNisn(string $nisn, string $newPassword, int $adminId): Alumni
     {
@@ -162,7 +162,7 @@ class AlumniService
     }
 
     /**
-     * Delete a single Alumni permanently.
+     * Menghapus satu data Alumni secara permanen beserta seluruh data relasinya.
      */
     public function deleteAlumni(Alumni $alumni, int $adminId): void
     {
@@ -198,7 +198,7 @@ class AlumniService
     }
 
     /**
-     * Bulk delete all alumni data.
+     * Menghapus seluruh data alumni dari sistem secara massal (Bulk Delete).
      */
     public function deleteAllAlumni(int $adminId): void
     {
@@ -228,7 +228,7 @@ class AlumniService
     }
 
     /**
-     * Clear all admin/kepsek dashboard cache
+     * Membersihkan seluruh cache dashboard admin dan kepala sekolah.
      */
     public function clearDashboardCache(): void
     {

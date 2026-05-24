@@ -1,6 +1,6 @@
 <template>
   <div class="landing-wrapper overflow-hidden">
-    <!-- HERO + STATS -->
+    <!-- BAGIAN HERO + STATISTIK -->
     <HeroSection
       :user="user"
       :stats="stats"
@@ -9,7 +9,7 @@
       :login-url="loginUrl"
     />
 
-    <!-- FITUR LAYANAN -->
+    <!-- BAGIAN FITUR LAYANAN -->
     <section class="features-section py-5 my-5">
       <div class="container py-5">
         <div class="text-center mb-5 fade-in-up">
@@ -32,16 +32,16 @@
       </div>
     </section>
 
-    <!-- BERITA -->
+    <!-- BAGIAN BERITA -->
     <BeritaSection :beritas="beritas" />
 
-    <!-- TESTIMONI -->
+    <!-- BAGIAN TESTIMONI -->
     <TestimonialSection :testimonis="testimonis" />
 
-    <!-- FAQ -->
+    <!-- BAGIAN FAQ -->
     <FaqSection :faqs="faqs" :login-url="loginUrl" />
 
-    <!-- CTA SECTION -->
+    <!-- BAGIAN PANGGILAN AKSI (CTA) -->
     <section class="cta-section-modern py-5 mb-5">
       <div class="container py-4">
         <div class="cta-banner rounded-5 overflow-hidden position-relative p-5 text-center">

@@ -53,12 +53,19 @@ class AlumniController extends Controller
         return view('admin.alumni.index', compact('alumnis', 'angkatans'));
     }
 
+    /**
+     * Menampilkan profil detail dari seorang alumni.
+     * Termasuk memuat relasi pendidikan, pekerjaan, dan foto yang terkait.
+     */
     public function show(Alumni $alumni)
     {
         $alumni->load(['user', 'angkatan', 'pendidikan', 'pekerjaan', 'fotos']);
         return view('admin.alumni.show', compact('alumni'));
     }
 
+    /**
+     * Menampilkan halaman formulir untuk mengedit data alumni.
+     */
     public function edit(Alumni $alumni)
     {
         $alumni->load(['user', 'angkatan', 'pendidikan', 'pekerjaan', 'fotos']);
@@ -66,6 +73,10 @@ class AlumniController extends Controller
         return view('admin.alumni.edit', compact('alumni', 'angkatans'));
     }
 
+    /**
+     * Memproses penyimpanan pembaruan data alumni ke database.
+     * Log aktivitas admin akan otomatis dicatat oleh AlumniService.
+     */
     public function update(UpdateAdminAlumniRequest $request, Alumni $alumni)
     {
         try {
@@ -77,6 +88,10 @@ class AlumniController extends Controller
         }
     }
 
+    /**
+     * Mengubah status verifikasi pendaftaran alumni (Pending/Verified/Rejected).
+     * Jika diverifikasi, akun pengguna terkait akan otomatis diaktifkan.
+     */
     public function verify(Request $request, Alumni $alumni)
     {
         $request->validate([
@@ -91,6 +106,10 @@ class AlumniController extends Controller
         }
     }
 
+    /**
+     * Mereset password akun alumni menjadi karakter acak secara otomatis.
+     * Password baru akan ditampilkan dalam pesan flash (session) satu kali.
+     */
     public function resetPassword(Alumni $alumni)
     {
         try {
@@ -102,11 +121,18 @@ class AlumniController extends Controller
         }
     }
 
+    /**
+     * Menampilkan halaman form untuk melakukan reset password berdasarkan NISN.
+     */
     public function resetPasswordForm()
     {
         return view('admin.alumni.reset-password');
     }
 
+    /**
+     * Memproses permintaan reset password spesifik menggunakan NISN alumni.
+     * Password akan disesuaikan dengan input yang diberikan oleh Admin.
+     */
     public function resetPasswordByNisn(Request $request)
     {
         $request->validate([
@@ -130,6 +156,10 @@ class AlumniController extends Controller
         }
     }
 
+    /**
+     * Menghapus permanen satu data alumni beserta seluruh relasi dan akunnya.
+     * Tindakan ini tidak dapat dibatalkan (Force Delete).
+     */
     public function destroy($id)
     {
         try {
@@ -142,12 +172,18 @@ class AlumniController extends Controller
         }
     }
 
+    /**
+     * Menampilkan halaman form untuk mengekspor data alumni ke dalam file Excel.
+     */
     public function exportForm()
     {
         $angkatans = Angkatan::get();
         return view('admin.alumni.export', compact('angkatans'));
     }
 
+    /**
+     * Memproses filter data dan mengunduh hasil ekspor data alumni dalam format Excel (.xlsx).
+     */
     public function export(Request $request)
     {
         $filters = $request->only(['status', 'angkatan_id', 'complete']);
@@ -161,11 +197,17 @@ class AlumniController extends Controller
         );
     }
 
+    /**
+     * Menampilkan halaman form untuk mengimpor data alumni dari file Excel.
+     */
     public function importForm()
     {
         return view('admin.alumni.import');
     }
 
+    /**
+     * Mengunduh template file Excel kosong yang sudah disesuaikan formatnya untuk keperluan impor data.
+     */
     public function downloadTemplate()
     {
         return \Maatwebsite\Excel\Facades\Excel::download(
@@ -174,6 +216,10 @@ class AlumniController extends Controller
         );
     }
 
+    /**
+     * Memproses file Excel yang diunggah untuk memasukkan data alumni secara massal.
+     * File sementara akan dihapus secara otomatis setelah proses selesai atau gagal.
+     */
     public function import(Request $request)
     {
         $request->validate([
@@ -205,6 +251,10 @@ class AlumniController extends Controller
         }
     }
 
+    /**
+     * Fitur berbahaya: Menghapus SELURUH data alumni di sistem secara massal.
+     * Membutuhkan kata kunci konfirmasi spesifik dari pengguna untuk mencegah ketidaksengajaan.
+     */
     public function deleteAll(Request $request)
     {
         $request->validate([
